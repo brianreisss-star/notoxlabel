@@ -1,0 +1,594 @@
+{
+    "ingredients": [
+        {
+            "name": "Açúcar",
+            "aliases": [
+                "sacarose",
+                "sugar",
+                "sucrose"
+            ],
+            "risk": 3,
+            "category": "sweetener",
+            "concerns": [
+                "Diabetes",
+                "Obesidade",
+                "Inflamação"
+            ],
+            "description": "Adoçante refinado comum",
+            "health_impact": "Picos de glicose, vício, inflamação crônica"
+        },
+        {
+            "name": "Xarope de Milho",
+            "aliases": [
+                "corn syrup",
+                "glucose-fructose",
+                "HFCS",
+                "xarope de glucose"
+            ],
+            "risk": 2,
+            "category": "sweetener",
+            "concerns": [
+                "Diabetes",
+                "Obesidade",
+                "Fígado Gorduroso"
+            ],
+            "description": "Adoçante industrial de alto índice glicêmico",
+            "health_impact": "Mais prejudicial que açúcar comum, associado a síndrome metabólica"
+        },
+        {
+            "name": "Aspartame",
+            "aliases": [
+                "E951",
+                "nutrasweet",
+                "equal"
+            ],
+            "risk": 3,
+            "category": "sweetener",
+            "concerns": [
+                "Neurotóxico",
+                "Enxaqueca"
+            ],
+            "description": "Adoçante artificial",
+            "health_impact": "Controverso, possíveis efeitos neurológicos"
+        },
+        {
+            "name": "Sucralose",
+            "aliases": [
+                "E955",
+                "splenda"
+            ],
+            "risk": 4,
+            "category": "sweetener",
+            "concerns": [
+                "Flora Intestinal"
+            ],
+            "description": "Adoçante artificial",
+            "health_impact": "Pode afetar microbioma intestinal"
+        },
+        {
+            "name": "Sacarina",
+            "aliases": [
+                "E954",
+                "saccharin"
+            ],
+            "risk": 3,
+            "category": "sweetener",
+            "concerns": [
+                "Cancerígeno Potencial"
+            ],
+            "description": "Adoçante artificial antigo",
+            "health_impact": "Estudos antigos indicavam risco de câncer"
+        },
+        {
+            "name": "Gordura Trans",
+            "aliases": [
+                "gordura vegetal hidrogenada",
+                "partially hydrogenated",
+                "trans fat",
+                "gordura parcialmente hidrogenada"
+            ],
+            "risk": 1,
+            "category": "fat",
+            "concerns": [
+                "Cardíaco",
+                "Inflamação",
+                "Colesterol"
+            ],
+            "description": "Gordura industrialmente modificada",
+            "health_impact": "Aumenta LDL, diminui HDL, risco cardiovascular extremo"
+        },
+        {
+            "name": "Óleo de Palma",
+            "aliases": [
+                "palm oil",
+                "palmiste"
+            ],
+            "risk": 4,
+            "category": "fat",
+            "concerns": [
+                "Colesterol",
+                "Ambiental"
+            ],
+            "description": "Gordura saturada vegetal",
+            "health_impact": "Alto em gordura saturada, impacto ambiental"
+        },
+        {
+            "name": "Gordura Vegetal",
+            "aliases": [
+                "vegetable fat",
+                "shortening"
+            ],
+            "risk": 4,
+            "category": "fat",
+            "concerns": [
+                "Processamento"
+            ],
+            "description": "Gordura processada genérica",
+            "health_impact": "Qualidade variável, geralmente ultraprocessada"
+        },
+        {
+            "name": "Nitrito de Sódio",
+            "aliases": [
+                "E250",
+                "sodium nitrite",
+                "nitrito"
+            ],
+            "risk": 1,
+            "category": "preservative",
+            "concerns": [
+                "Cancerígeno"
+            ],
+            "description": "Conservante para carnes processadas",
+            "health_impact": "Classificado como cancerígeno grupo 1 pela OMS"
+        },
+        {
+            "name": "Nitrato de Sódio",
+            "aliases": [
+                "E251",
+                "sodium nitrate",
+                "nitrato"
+            ],
+            "risk": 2,
+            "category": "preservative",
+            "concerns": [
+                "Cancerígeno"
+            ],
+            "description": "Conservante que se converte em nitrito",
+            "health_impact": "Risco similar ao nitrito"
+        },
+        {
+            "name": "Benzoato de Sódio",
+            "aliases": [
+                "E211",
+                "sodium benzoate"
+            ],
+            "risk": 3,
+            "category": "preservative",
+            "concerns": [
+                "Alergênico",
+                "Hiperatividade"
+            ],
+            "description": "Conservante antimicrobiano",
+            "health_impact": "Pode formar benzeno com vitamina C"
+        },
+        {
+            "name": "Sorbato de Potássio",
+            "aliases": [
+                "E202",
+                "potassium sorbate"
+            ],
+            "risk": 6,
+            "category": "preservative",
+            "concerns": [],
+            "description": "Conservante relativamente seguro",
+            "health_impact": "Baixa toxicidade"
+        },
+        {
+            "name": "BHA",
+            "aliases": [
+                "E320",
+                "butylated hydroxyanisole",
+                "butil-hidroxianisol"
+            ],
+            "risk": 2,
+            "category": "preservative",
+            "concerns": [
+                "Cancerígeno",
+                "Disruptor Endócrino"
+            ],
+            "description": "Antioxidante sintético",
+            "health_impact": "Possível carcinógeno, afeta hormônios"
+        },
+        {
+            "name": "BHT",
+            "aliases": [
+                "E321",
+                "butylated hydroxytoluene",
+                "butil-hidroxitolueno"
+            ],
+            "risk": 3,
+            "category": "preservative",
+            "concerns": [
+                "Disruptor Endócrino"
+            ],
+            "description": "Antioxidante sintético",
+            "health_impact": "Menos estudado que BHA, riscos similares"
+        },
+        {
+            "name": "TBHQ",
+            "aliases": [
+                "E319",
+                "tert-butylhydroquinone"
+            ],
+            "risk": 2,
+            "category": "preservative",
+            "concerns": [
+                "Neurotóxico",
+                "Imunidade"
+            ],
+            "description": "Antioxidante sintético em óleos",
+            "health_impact": "Pode afetar sistema imune e nervoso"
+        },
+        {
+            "name": "Glutamato Monossódico",
+            "aliases": [
+                "E621",
+                "MSG",
+                "glutamato",
+                "umami"
+            ],
+            "risk": 4,
+            "category": "flavor",
+            "concerns": [
+                "Neurotóxico",
+                "Enxaqueca"
+            ],
+            "description": "Realçador de sabor",
+            "health_impact": "Pode causar dores de cabeça em sensíveis"
+        },
+        {
+            "name": "Extrato de Levedura",
+            "aliases": [
+                "yeast extract",
+                "autolyzed yeast"
+            ],
+            "risk": 5,
+            "category": "flavor",
+            "concerns": [
+                "Glutamato Escondido"
+            ],
+            "description": "Contém glutamato natural",
+            "health_impact": "Forma de esconder MSG no rótulo"
+        },
+        {
+            "name": "Proteína Hidrolisada",
+            "aliases": [
+                "hydrolyzed protein",
+                "proteína vegetal hidrolisada"
+            ],
+            "risk": 5,
+            "category": "flavor",
+            "concerns": [
+                "Glutamato Escondido"
+            ],
+            "description": "Contém glutamato natural",
+            "health_impact": "Outra forma de glutamato"
+        },
+        {
+            "name": "Tartrazina",
+            "aliases": [
+                "E102",
+                "amarelo 5",
+                "yellow 5",
+                "FD&C yellow 5"
+            ],
+            "risk": 2,
+            "category": "colorant",
+            "concerns": [
+                "Alergênico",
+                "Hiperatividade",
+                "TDAH"
+            ],
+            "description": "Corante amarelo artificial",
+            "health_impact": "Reações alérgicas, hiperatividade em crianças"
+        },
+        {
+            "name": "Amaranto",
+            "aliases": [
+                "E123",
+                "vermelho 2",
+                "red 2"
+            ],
+            "risk": 1,
+            "category": "colorant",
+            "concerns": [
+                "Cancerígeno",
+                "Proibido EUA"
+            ],
+            "description": "Corante vermelho proibido em vários países",
+            "health_impact": "Banido nos EUA por riscos de câncer"
+        },
+        {
+            "name": "Vermelho 40",
+            "aliases": [
+                "E129",
+                "allura red",
+                "red 40"
+            ],
+            "risk": 2,
+            "category": "colorant",
+            "concerns": [
+                "Hiperatividade",
+                "Alergênico"
+            ],
+            "description": "Corante vermelho comum",
+            "health_impact": "Associado a TDAH em crianças"
+        },
+        {
+            "name": "Azul Brilhante",
+            "aliases": [
+                "E133",
+                "brilliant blue",
+                "blue 1"
+            ],
+            "risk": 3,
+            "category": "colorant",
+            "concerns": [
+                "Alergênico"
+            ],
+            "description": "Corante azul artificial",
+            "health_impact": "Reações alérgicas possíveis"
+        },
+        {
+            "name": "Caramelo IV",
+            "aliases": [
+                "E150d",
+                "caramel color",
+                "corante caramelo"
+            ],
+            "risk": 3,
+            "category": "colorant",
+            "concerns": [
+                "Cancerígeno"
+            ],
+            "description": "Corante marrom comum em refrigerantes",
+            "health_impact": "Contém 4-MEI, possível carcinógeno"
+        },
+        {
+            "name": "Dióxido de Titânio",
+            "aliases": [
+                "E171",
+                "titanium dioxide",
+                "TiO2"
+            ],
+            "risk": 2,
+            "category": "colorant",
+            "concerns": [
+                "Cancerígeno",
+                "Proibido UE"
+            ],
+            "description": "Branqueador proibido na Europa",
+            "health_impact": "Banido na UE em 2022 por riscos de câncer"
+        },
+        {
+            "name": "Carmim",
+            "aliases": [
+                "E120",
+                "cochineal",
+                "carmine",
+                "ácido carmínico"
+            ],
+            "risk": 5,
+            "category": "colorant",
+            "concerns": [
+                "Alergênico"
+            ],
+            "description": "Corante vermelho de insetos",
+            "health_impact": "Alergias severas em algumas pessoas"
+        },
+        {
+            "name": "Carne Mecanicamente Separada",
+            "aliases": [
+                "CMS",
+                "mechanically separated meat",
+                "carne separada mecanicamente"
+            ],
+            "risk": 2,
+            "category": "meat",
+            "concerns": [
+                "Qualidade",
+                "Contaminação"
+            ],
+            "description": "Restos de carne processados",
+            "health_impact": "Baixo valor nutricional, risco de contaminação"
+        },
+        {
+            "name": "Farinha de Trigo Refinada",
+            "aliases": [
+                "wheat flour",
+                "farinha de trigo enriquecida",
+                "refined flour"
+            ],
+            "risk": 5,
+            "category": "carb",
+            "concerns": [
+                "Glúten",
+                "Glicemia"
+            ],
+            "description": "Carboidrato refinado",
+            "health_impact": "Picos de glicose, sem fibras"
+        },
+        {
+            "name": "Amido Modificado",
+            "aliases": [
+                "modified starch",
+                "amido de milho modificado"
+            ],
+            "risk": 5,
+            "category": "carb",
+            "concerns": [
+                "Ultraprocessado"
+            ],
+            "description": "Espessante industrial",
+            "health_impact": "Altamente processado, sem valor nutricional"
+        },
+        {
+            "name": "Maltodextrina",
+            "aliases": [
+                "maltodextrin"
+            ],
+            "risk": 4,
+            "category": "carb",
+            "concerns": [
+                "Glicemia"
+            ],
+            "description": "Carboidrato de absorção rápida",
+            "health_impact": "Índice glicêmico mais alto que açúcar"
+        },
+        {
+            "name": "Carragenina",
+            "aliases": [
+                "E407",
+                "carrageenan"
+            ],
+            "risk": 3,
+            "category": "additive",
+            "concerns": [
+                "Inflamação",
+                "Intestino"
+            ],
+            "description": "Espessante de algas",
+            "health_impact": "Pode causar inflamação intestinal"
+        },
+        {
+            "name": "Goma Xantana",
+            "aliases": [
+                "E415",
+                "xanthan gum"
+            ],
+            "risk": 7,
+            "category": "additive",
+            "concerns": [],
+            "description": "Espessante natural",
+            "health_impact": "Geralmente seguro"
+        },
+        {
+            "name": "Lecitina de Soja",
+            "aliases": [
+                "E322",
+                "soy lecithin"
+            ],
+            "risk": 6,
+            "category": "additive",
+            "concerns": [
+                "OGM"
+            ],
+            "description": "Emulsificante de soja",
+            "health_impact": "Seguro, mas geralmente de soja transgênica"
+        },
+        {
+            "name": "Polissorbato 80",
+            "aliases": [
+                "E433",
+                "polysorbate 80"
+            ],
+            "risk": 3,
+            "category": "additive",
+            "concerns": [
+                "Inflamação",
+                "Intestino"
+            ],
+            "description": "Emulsificante sintético",
+            "health_impact": "Pode danificar barreira intestinal"
+        },
+        {
+            "name": "Aroma Artificial",
+            "aliases": [
+                "artificial flavor",
+                "flavoring",
+                "aroma idêntico ao natural"
+            ],
+            "risk": 4,
+            "category": "flavor",
+            "concerns": [
+                "Desconhecido"
+            ],
+            "description": "Mistura química não especificada",
+            "health_impact": "Composição não revelada, riscos desconhecidos"
+        },
+        {
+            "name": "Aroma Natural",
+            "aliases": [
+                "natural flavor",
+                "aroma natural"
+            ],
+            "risk": 6,
+            "category": "flavor",
+            "concerns": [],
+            "description": "Pode ser de origem animal ou vegetal",
+            "health_impact": "Geralmente seguro, mas vago"
+        }
+    ],
+    "categories": {
+        "sweetener": "Adoçante",
+        "fat": "Gordura",
+        "preservative": "Conservante",
+        "colorant": "Corante",
+        "flavor": "Saborizante",
+        "additive": "Aditivo",
+        "meat": "Carne",
+        "carb": "Carboidrato"
+    },
+    "riskLevels": {
+        "1": {
+            "label": "Crítico",
+            "color": "red",
+            "description": "Evitar completamente"
+        },
+        "2": {
+            "label": "Alto",
+            "color": "red",
+            "description": "Consumo muito limitado"
+        },
+        "3": {
+            "label": "Moderado-Alto",
+            "color": "orange",
+            "description": "Consumo ocasional"
+        },
+        "4": {
+            "label": "Moderado",
+            "color": "yellow",
+            "description": "Consumo com moderação"
+        },
+        "5": {
+            "label": "Moderado-Baixo",
+            "color": "yellow",
+            "description": "Atenção para sensíveis"
+        },
+        "6": {
+            "label": "Baixo",
+            "color": "green",
+            "description": "Geralmente seguro"
+        },
+        "7": {
+            "label": "Mínimo",
+            "color": "green",
+            "description": "Seguro para maioria"
+        },
+        "8": {
+            "label": "Muito Baixo",
+            "color": "green",
+            "description": "Sem preocupações conhecidas"
+        },
+        "9": {
+            "label": "Seguro",
+            "color": "green",
+            "description": "Considerado saudável"
+        },
+        "10": {
+            "label": "Excelente",
+            "color": "green",
+            "description": "Benéfico à saúde"
+        }
+    }
+}

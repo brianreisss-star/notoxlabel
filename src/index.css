@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-blue: #0A1E4B;
+    --brand-green: #FF385C;
+    /* Airbnb Red-ish Coral for a twist, or keep green? User said Airbnb pegada. I'll stick to a clean emerald but use Airbnb proportions */
+    --brand-emerald: #10B981;
+    --soft-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    --inner-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  }
+
+  body {
+    @apply bg-white text-gray-900 overflow-x-hidden antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+}
+
+@layer components {
+  .airbnb-card {
+    @apply bg-white rounded-3xl border border-gray-100 shadow-sm transition-all duration-300;
+  }
+
+  .airbnb-card:hover {
+    @apply shadow-xl border-gray-200;
+    transform: translateY(-2px);
+  }
+
+  .btn-primary {
+    @apply bg-[#FF385C] text-white py-4 px-8 rounded-2xl font-black text-lg shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all;
+  }
+
+  .glass-header {
+    @apply sticky top-0 bg-white/80 backdrop-blur-xl z-50 border-b border-gray-100;
+  }
+}
+
+/* Smooth transitions for all route changes */
+.page-transition {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
