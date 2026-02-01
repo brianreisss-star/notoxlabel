@@ -8,6 +8,13 @@
 const SUPABASE_URL = localStorage.getItem('notoxlabel_supabase_url') || localStorage.getItem('rotulimpo_supabase_url') || import.meta.env.VITE_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = localStorage.getItem('notoxlabel_supabase_key') || localStorage.getItem('rotulimpo_supabase_key') || import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
+import { createClient } from '@supabase/supabase-js';
+
+// Export the official client for advanced usage (like in AdminDashboard)
+export const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
+    ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
+
 // Check if Supabase is configured
 export const isSupabaseConfigured = () => {
     return !!(SUPABASE_URL && SUPABASE_ANON_KEY);
