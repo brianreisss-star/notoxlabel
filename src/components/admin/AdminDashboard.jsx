@@ -51,9 +51,11 @@ const AdminDashboard = () => {
 
     const metrics = [
         { label: "Total de Cadastros", value: realMetrics.users, growth: "+12%", icon: <Users />, color: "bg-blue-50 text-blue-600" },
-        { label: "Tokens Utilizados", value: "4.8k", growth: "+24%", icon: <Zap />, color: "bg-yellow-50 text-yellow-600" },
+        // Estimate: ~1500 tokens per scan average
+        { label: "Tokens Utilizados", value: `${(realMetrics.scans * 1.5).toFixed(1)}k`, growth: "+24%", icon: <Zap />, color: "bg-yellow-50 text-yellow-600" },
         { label: "Scans (Total)", value: realMetrics.scans, growth: "+8%", icon: <BarChart3 />, color: "bg-emerald-50 text-emerald-600" },
-        { label: "MRR (Mensal)", value: "R$ 4,250", growth: "+15%", icon: <Crown />, color: "bg-purple-50 text-purple-600" }
+        // Estimate: 5% conversion at R$ 29.90
+        { label: "MRR (Estimado)", value: `R$ ${(realMetrics.users * 0.05 * 29.90).toFixed(0)}`, growth: "+15%", icon: <Crown />, color: "bg-purple-50 text-purple-600" }
     ];
 
     const financialKpis = [

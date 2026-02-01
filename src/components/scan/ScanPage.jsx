@@ -99,7 +99,7 @@ const ScanPage = () => {
                 if (cached && !isBatchMode) {
                     result = { ...cached, image: preview };
                 } else {
-                    const providerName = getProvider() === 'claude' ? 'Claude 3.5' : 'GPT-4o';
+                    const providerName = getProvider() === 'claude' ? 'NoTox IA 1.7' : 'GPT-4o';
                     setLoadingText(isBatchMode ? `Analisando ${previews.length} rótulos com ${providerName}...` : `Analisando com ${providerName}...`);
 
                     result = await analyzeLabel(analysisData);

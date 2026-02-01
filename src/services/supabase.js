@@ -299,8 +299,6 @@ export const createConversation = async (userId1, userId2) => {
     // NOTE: supabaseFetch wrapper implies returns JSON. 
     // If standard PostgREST: POST returns new row if Prefer: return=representation.
 
-    if (!convId && conv.id) convId = conv.id; // Handle both
-
     if (convId) {
         // Add Participants
         await supabaseFetch('/conversation_participants', { method: 'POST', body: JSON.stringify({ conversation_id: convId, user_id: userId1 }) });
@@ -308,6 +306,70 @@ export const createConversation = async (userId1, userId2) => {
         return convId;
     }
     return null;
+};
+
+// ==================== COMMUNITY ====================
+
+export const getPosts = async () => {
+    try {
+        const { data, error } = await supabase
+            .from('posts')
+            .select(`
+                *,
+                profiles:user_id (name, role, professional_specialty, professional_number, xp, photo_url, is_professional, goals),
+                post_likes (user_id)
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Transform data for UI
+        const currentUser = getCurrentUser();
+        return data.map(post => ({
+            id: post.id,
+            author: post.profiles?.name || 'Usuário',
+            role: post.profiles?.role === 'professional' ? post.profiles.professional_specialty || "Profissional" : "Consumidor Consciente",
+            credentials: post.profiles?.professional_number || "",
+            scansCount: post.profiles?.xp ? Math.floor(post.profiles.xp / 10) : 0,
+            content: post.content,
+            likes: post.likes_count || 0,
+            comments: post.comments_count || 0,
+            photo: post.profiles?.photo_url,
+            isPro: post.profiles?.is_professional,
+            isMe: post.user_id === currentUser?.id,
+            goal: post.profiles?.goals?.[0] || "Saúde",
+            isLiked: post.post_likes?.some(like => like.user_id === currentUser?.id),
+            created_at: post.created_at
+        }));
+    } catch (error) {
+        console.error('Error fetching posts:', error);
+        return [];
+    }
+};
+
+export const createPost = async (userId, content) => {
+    return supabaseFetch('/posts', {
+        method: 'POST',
+        body: JSON.stringify({
+            user_id: userId,
+            content,
+            created_at: new Date().toISOString()
+        })
+    });
+};
+
+export const togglePostLike = async (postId, userId, isLiked) => {
+    if (isLiked) {
+        // Unlike
+        await supabaseFetch(`/post_likes?post_id=eq.${postId}&user_id=eq.${userId}`, { method: 'DELETE' });
+        // Decrement counter (simplified, ideally via RPC or trigger)
+    } else {
+        // Like
+        await supabaseFetch('/post_likes', {
+            method: 'POST',
+            body: JSON.stringify({ post_id: postId, user_id: userId })
+        });
+    }
 };
 
 

@@ -5,6 +5,7 @@ import { MessageSquare, Heart, Share2, Plus, X, ShieldCheck, Instagram, Award, C
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../layout/BottomNav';
 import ChatSystem from '../chat/ChatSystem';
+import { getPosts, createPost, togglePostLike } from '../../services/supabase'; // Import backend functions
 
 const CommunityPage = () => {
     const { profile, user } = useUser();
@@ -15,57 +16,35 @@ const CommunityPage = () => {
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [chatTarget, setChatTarget] = useState(null);
 
-    const [posts, setPosts] = useState([
-        {
-            id: 'current-user',
-            author: profile?.name || user?.name || "Você",
-            role: profile?.role === 'professional' ? profile.professional_specialty || "Profissional" : "Consumidor Consciente",
-            credentials: profile?.professional_number || "",
-            scansCount: profile?.xp ? Math.floor(profile.xp / 10) : 12,
-            content: "Acabei de entrar para a comunidade NoToxLabel! 🚀 Estou animado para descobrir a verdade por trás de cada rótulo.",
-            likes: 0,
-            comments: 0,
-            photo: user?.photoURL || null,
-            isPro: profile?.role === 'professional' || profile?.is_professional,
-            isMe: true,
-            goal: profile?.goals?.[0] || "🍎 Longevidade"
-        },
-        {
-            id: 'u1',
-            author: "Dra. Ana Silva",
-            role: "Nutricionista",
-            credentials: "CRN 12345",
-            scansCount: 428,
-            content: "Você sabia que muitos 'sucos naturais' de caixinha possuem tanto açúcar quanto refrigerantes? Sempre confira a lista de ingredientes: o primeiro item é o que está em maior quantidade.",
-            likes: 245,
-            comments: 12,
-            instagram: "dra_ana_silva",
-            isPro: true,
-            goal: "⚖️ Emagrecer"
-        },
-        {
-            id: 'u2',
-            author: "Marcos Lima",
-            role: "Entusiasta",
-            scansCount: 156,
-            content: "Acabei de escanear um protetor solar e descobri que ele contém oxibenzona. Alguém sabe de uma alternativa mais limpa?",
-            likes: 42,
-            comments: 8,
-            isPro: false,
-            goal: "🛡️ Prevenção"
-        },
-        {
-            id: 'u3',
-            author: "Juliana Costa",
-            role: "Atleta",
-            scansCount: 89,
-            content: "Encontrei um pré-treino sem corantes artificiais! Faz muita diferença na minha energia e recuperação.",
-            likes: 56,
-            comments: 4,
-            isPro: false,
-            goal: "🏃 Performance"
-        }
-    ]);
+    const [posts, setPosts] = useState([]);
+    const [newPostContent, setNewPostContent] = useState("");
+
+    // Fetch real posts
+    useEffect(() => {
+        const fetchPosts = async () => {
+            const data = await getPosts();
+            if (data && data.length > 0) {
+                setPosts(data);
+            } else {
+                // Fallback to demo posts if DB empty
+                setPosts([
+                    {
+                        id: 'demo-1',
+                        author: "Dra. Ana Silva",
+                        role: "Nutricionista",
+                        credentials: "CRN 12345",
+                        scansCount: 428,
+                        content: "DEMO: Conecte o banco de dados para ver posts reais! Você sabia que muitos 'sucos naturais' de caixinha possuem tanto açúcar quanto refrigerantes?",
+                        likes: 245,
+                        comments: 12,
+                        isPro: true,
+                        goal: "⚖️ Emagrecer"
+                    }
+                ]);
+            }
+        };
+        fetchPosts();
+    }, []);
 
     const isPro = profile?.role === 'professional' || profile?.is_professional === true;
     const userGoals = Array.isArray(profile?.goals) ? profile.goals : [];
@@ -93,6 +72,62 @@ const CommunityPage = () => {
         };
         setChatTarget(target);
         setIsChatOpen(true);
+    };
+
+    // Like Logic
+    const toggleLike = async (postId) => {
+        const post = posts.find(p => p.id === postId);
+        if (!post) return;
+
+        // Optimistic Update
+        const isLiked = post.isLiked;
+        setPosts(currentPosts => currentPosts.map(p => {
+            if (p.id === postId) {
+                return {
+                    ...p,
+                    isLiked: !isLiked,
+                    likes: isLiked ? p.likes - 1 : p.likes + 1
+                };
+            }
+            return p;
+        }));
+
+        // Backend Sync
+        if (user) {
+            await togglePostLike(postId, user.id, isLiked);
+        }
+    };
+
+    // Create Post Logic
+    const handleCreatePost = async () => {
+        if (!newPostContent.trim()) return;
+
+        if (user) {
+            await createPost(user.id, newPostContent);
+            setNewPostContent("");
+            setIsPostModalOpen(false);
+            alert("Post enviado! Atualize a página para ver (ou implemente realtime depois).");
+            // Ideally refetch posts here
+            const data = await getPosts();
+            setPosts(data);
+        }
+    };
+
+    // Comment State
+    const [commentModalPostId, setCommentModalPostId] = useState(null);
+    const [newComment, setNewComment] = useState("");
+
+    const handlePostComment = () => {
+        if (!newComment.trim()) return;
+        setPosts(current => current.map(p => {
+            if (p.id === commentModalPostId) {
+                return { ...p, comments: p.comments + 1 };
+            }
+            return p;
+        }));
+        setNewComment("");
+        setCommentModalPostId(null);
+        alert("Comentário enviado!");
     };
 
     return (
@@ -204,11 +239,17 @@ const CommunityPage = () => {
 
                             <div className="flex items-center justify-between border-t border-gray-100/50 pt-4">
                                 <div className="flex gap-4">
-                                    <button className="flex items-center gap-1.5 text-gray-400 hover:text-red-500 transition-colors">
-                                        <Heart size={18} />
+                                    <button
+                                        onClick={() => toggleLike(post.id)}
+                                        className={`flex items-center gap-1.5 transition-colors ${post.isLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                                    >
+                                        <Heart size={18} fill={post.isLiked ? "currentColor" : "none"} />
                                         <span className="text-[10px] font-black">{post.likes}</span>
                                     </button>
-                                    <button className="flex items-center gap-1.5 text-gray-400 hover:text-gray-900 transition-colors">
+                                    <button
+                                        onClick={() => setCommentModalPostId(post.id)}
+                                        className="flex items-center gap-1.5 text-gray-400 hover:text-gray-900 transition-colors"
+                                    >
                                         <MessageSquare size={18} />
                                         <span className="text-[10px] font-black">{post.comments}</span>
                                     </button>
@@ -260,10 +301,31 @@ const CommunityPage = () => {
                             <button onClick={() => setIsPostModalOpen(false)} className="absolute right-8 top-8 text-gray-300 hover:text-gray-900"><X size={24} /></button>
                             <h3 className="text-2xl font-black text-gray-900 mb-6 tracking-tighter">Novo Insight</h3>
                             <textarea
+                                value={newPostContent}
+                                onChange={(e) => setNewPostContent(e.target.value)}
                                 className="w-full h-40 bg-gray-50 border border-transparent rounded-3xl p-6 text-gray-600 font-medium focus:bg-white focus:border-emerald-500 outline-none transition-all placeholder:text-gray-300 mb-6"
                                 placeholder="Compartilhe uma dica ou curiosidade sobre rótulos..."
                             ></textarea>
-                            <button className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black shadow-lg shadow-emerald-200">Publicar Agora</button>
+                            <button onClick={handleCreatePost} className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black shadow-lg shadow-emerald-200">Publicar Agora</button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Comment Modal */}
+            <AnimatePresence>
+                {commentModalPostId && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+                        <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white rounded-[3rem] p-8 w-full max-w-lg shadow-2xl relative">
+                            <button onClick={() => setCommentModalPostId(null)} className="absolute right-8 top-8 text-gray-300 hover:text-gray-900"><X size={24} /></button>
+                            <h3 className="text-2xl font-black text-gray-900 mb-6 tracking-tighter">Comentar</h3>
+                            <textarea
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                className="w-full h-32 bg-gray-50 border border-transparent rounded-3xl p-6 text-gray-600 font-medium focus:bg-white focus:border-blue-500 outline-none transition-all placeholder:text-gray-300 mb-6"
+                                placeholder="Escreva seu comentário..."
+                            ></textarea>
+                            <button onClick={handlePostComment} className="w-full bg-gray-900 text-white py-5 rounded-2xl font-black shadow-lg">Enviar Comentário</button>
                         </motion.div>
                     </motion.div>
                 )}

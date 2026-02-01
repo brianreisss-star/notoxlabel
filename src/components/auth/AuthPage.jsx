@@ -48,7 +48,6 @@ const AuthPage = () => {
                 if (result.user) {
                     setUser(result.user);
                     // Short delay to allow Context to pick up the change and fetch profile
-                    // In a perfect world we'd wait for the context loading state, but for now this ensures the state update propagates
                     setTimeout(() => navigate('/'), 100);
                 }
             } else {
@@ -63,12 +62,19 @@ const AuthPage = () => {
                 });
 
                 if (result.user) {
-                    setUser(result.user);
-                    if (refCode) {
-                        addCredits(2);
-                        alert(`Bem-vindo! Você ganhou +2 créditos pela indicação.`);
+                    // Check if email confirmation is required (session might be null)
+                    if (result.session) {
+                        setUser(result.user);
+                        if (refCode) {
+                            addCredits(2);
+                            alert(`Bem-vindo! Você ganhou +2 créditos pela indicação.`);
+                        }
+                        setTimeout(() => navigate('/onboarding'), 100);
+                    } else {
+                        // Email confirmation flow
+                        alert("Conta criada com sucesso! Verifique seu e-mail para confirmar o cadastro antes de entrar.");
+                        setIsLogin(true); // Switch back to login
                     }
-                    setTimeout(() => navigate('/onboarding'), 100);
                 }
             }
         } catch (err) {
