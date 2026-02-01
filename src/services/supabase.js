@@ -373,6 +373,34 @@ export const togglePostLike = async (postId, userId, isLiked) => {
 };
 
 
+// ==================== BLOG ====================
+
+export const getBlogPosts = async () => {
+    try {
+        const { data, error } = await supabase
+            .from('blog_posts')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error fetching blog posts:', error);
+        return [];
+    }
+};
+
+export const createBlogPost = async (postData) => {
+    return supabaseFetch('/blog_posts', {
+        method: 'POST',
+        body: JSON.stringify({
+            ...postData,
+            created_at: new Date().toISOString()
+        })
+    });
+};
+
+
 // ==================== CONFIGURATION ====================
 
 export const setSupabaseConfig = (url, key) => {
