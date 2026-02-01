@@ -8,6 +8,8 @@ import { setOpenAiKey } from '../../services/openaiApi';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ScanPage = () => {
+    const { user } = useUser();
+    const isAdmin = user?.email === 'admin@notoxlabel.com.br';
     const fileInputRef = useRef(null);
     const [preview, setPreview] = useState(null);
     const [previews, setPreviews] = useState([]);
@@ -141,15 +143,15 @@ const ScanPage = () => {
                             className="bg-white rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl relative"
                         >
                             <button onClick={() => setShowApiModal(false)} className="absolute right-6 top-6 text-gray-400 hover:text-gray-900"><X size={20} /></button>
-                            <h3 className="text-2xl font-black text-gray-900 mb-2">Configurar IA</h3>
-                            <p className="text-gray-400 font-medium mb-6 text-sm">Escolha seu cérebro artificial.</p>
+                            <h3 className="text-2xl font-black text-gray-900 mb-2">Configurar NoTox Brain</h3>
+                            <p className="text-gray-400 font-medium mb-6 text-sm">Painel Administrativo do Sistema Neural.</p>
 
                             <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
                                 <button
                                     onClick={() => setSelectedProvider('claude')}
                                     className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${selectedProvider === 'claude' ? 'bg-white shadow-md text-gray-900' : 'text-gray-400'}`}
                                 >
-                                    Claude 3.5
+                                    NoTox v1.7 (Stable)
                                 </button>
                                 <button
                                     onClick={() => setSelectedProvider('openai')}
@@ -228,15 +230,25 @@ const ScanPage = () => {
                                 onClick={() => setIsBatchMode(true)}
                                 className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl ${isBatchMode ? 'bg-white text-gray-900 shadow-lg' : 'text-white/40'}`}
                             >
-                                Modo Lote
+                                Analisar Vários
                             </button>
                         </div>
+
+                        {isBatchMode && (
+                            <motion.p
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-center text-xs font-medium text-emerald-400 mt-2 bg-emerald-500/10 py-2 px-4 rounded-xl border border-emerald-500/20"
+                            >
+                                Perfeito para analisar todas as compras do mês de uma vez só! 🛍️
+                            </motion.p>
+                        )}
                     </div>
 
-                    <div className="mt-12 flex items-center justify-center gap-3 py-3 px-6 bg-white/5 rounded-full border border-white/5 w-fit mx-auto">
-                        <div className={`w-2 h-2 rounded-full ${isConfigured() ? 'bg-emerald-500 animate-pulse' : 'bg-yellow-500'}`}></div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
-                            {isConfigured() ? (getProvider() === 'claude' ? 'IA Claude Ativa' : 'IA GPT-4o Ativa') : 'Modo Demonstração'}
+                    <div className="mt-12 flex items-center justify-center gap-3 py-3 px-6 bg-emerald-500/10 rounded-full border border-emerald-500/20 w-fit mx-auto">
+                        <div className={`w-2 h-2 rounded-full bg-emerald-500 animate-pulse`}></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
+                            {isConfigured() ? 'NoTox IA 1.7 Conectada' : 'Modo Demonstração (Ativo)'}
                         </span>
                     </div>
                 </motion.div>
@@ -309,11 +321,13 @@ const ScanPage = () => {
                     <X size={24} strokeWidth={3} />
                 </button>
             </div>
-            <div className="absolute top-8 right-8 z-[60]">
-                <button onClick={() => setShowApiModal(true)} className="bg-white/10 border border-white/10 text-white p-3 rounded-2xl backdrop-blur-xl active:scale-90 transition-all">
-                    <Settings size={22} strokeWidth={2.5} />
-                </button>
-            </div>
+            {isAdmin && (
+                <div className="absolute top-8 right-8 z-[60]">
+                    <button onClick={() => setShowApiModal(true)} className="bg-white/10 border border-white/10 text-white p-3 rounded-2xl backdrop-blur-xl active:scale-90 transition-all">
+                        <Settings size={22} strokeWidth={2.5} />
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

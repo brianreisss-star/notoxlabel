@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../services/supabase';
 import { useUser } from '../../context/UserContext';
 import { motion } from 'framer-motion';
 import { TrendingUp, Users, Zap, BarChart3, Map, Package, ArrowUpRight, Crown, ShieldAlert, Download, Target, TrendingDown, PieChart, Activity, Plus, Trash2, ArrowLeft, Sparkles } from 'lucide-react';
@@ -27,10 +28,31 @@ const AdminDashboard = () => {
         );
     }
 
+    const [realMetrics, setRealMetrics] = useState({
+        users: 0,
+        scans: 0
+    });
+
+    useEffect(() => {
+        const fetchMetrics = async () => {
+            try {
+                const { count: usersCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+                const { count: scansCount } = await supabase.from('scan_history').select('*', { count: 'exact', head: true });
+                setRealMetrics({
+                    users: usersCount || 0,
+                    scans: scansCount || 0
+                });
+            } catch (error) {
+                console.error('Error fetching admin metrics:', error);
+            }
+        };
+        if (isAdmin) fetchMetrics();
+    }, [isAdmin]);
+
     const metrics = [
-        { label: "Total de Cadastros", value: "1,284", growth: "+12%", icon: <Users />, color: "bg-blue-50 text-blue-600" },
+        { label: "Total de Cadastros", value: realMetrics.users, growth: "+12%", icon: <Users />, color: "bg-blue-50 text-blue-600" },
         { label: "Tokens Utilizados", value: "4.8k", growth: "+24%", icon: <Zap />, color: "bg-yellow-50 text-yellow-600" },
-        { label: "Scans (Total)", value: fullHistoryCount || "842", growth: "+8%", icon: <BarChart3 />, color: "bg-emerald-50 text-emerald-600" },
+        { label: "Scans (Total)", value: realMetrics.scans, growth: "+8%", icon: <BarChart3 />, color: "bg-emerald-50 text-emerald-600" },
         { label: "MRR (Mensal)", value: "R$ 4,250", growth: "+15%", icon: <Crown />, color: "bg-purple-50 text-purple-600" }
     ];
 

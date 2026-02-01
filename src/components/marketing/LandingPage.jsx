@@ -8,12 +8,12 @@ const LandingPage = () => {
 
     const features = [
         {
-            title: "Scanner IA 3.5",
-            desc: "Análise profunda de ingredientes em milissegundos usando Claude Vision.",
+            title: "NoTox IA 1.7",
+            desc: "Análise profunda de ingredientes em milissegundos usando nossa rede neural exclusiva.",
             icon: <Zap className="text-emerald-500" />
         },
         {
-            title: "Modo Lote (Batch)",
+            title: "Analisar Vários",
             desc: "Analise múltiplos produtos ou partes de um rótulo de uma só vez.",
             icon: <Target className="text-[#FF385C]" />
         },
@@ -40,7 +40,7 @@ const LandingPage = () => {
                 <div className="flex items-center gap-6">
                     <Link to="/auth" className="text-xs font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors hidden sm:block">Entrar</Link>
                     <button
-                        onClick={() => navigate('/auth')}
+                        onClick={() => navigate('/auth?mode=signup')}
                         className="bg-gray-900 text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl shadow-gray-200 active:scale-95 transition-all"
                     >
                         Começar Agora
@@ -74,7 +74,7 @@ const LandingPage = () => {
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <button
-                                    onClick={() => navigate('/auth')}
+                                    onClick={() => navigate('/auth?mode=signup')}
                                     className="bg-gray-900 text-white px-10 py-6 rounded-[2rem] font-black text-xl flex items-center justify-center gap-3 shadow-2xl shadow-gray-400/30 hover:scale-105 active:scale-95 transition-all"
                                 >
                                     Teste Grátis Agora
@@ -172,7 +172,7 @@ const LandingPage = () => {
                         <h2 className="text-5xl sm:text-7xl font-black text-white mb-8 tracking-tighter leading-none">Pronto para revelar o invisível?</h2>
                         <p className="text-gray-400 text-xl font-medium mb-12 max-w-sm mx-auto">Sua saúde não deveria ter segredos. Comece agora.</p>
                         <button
-                            onClick={() => navigate('/auth')}
+                            onClick={() => navigate('/auth?mode=signup')}
                             className="bg-white text-gray-900 px-12 py-6 rounded-[2.5rem] font-black text-2xl shadow-2xl hover:bg-[#FF385C] hover:text-white transition-all active:scale-95"
                         >
                             Teste Grátis Agora
@@ -207,7 +207,9 @@ const LandingPage = () => {
                             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300 mb-6">Social</h4>
                             <ul className="space-y-4 text-sm font-bold text-gray-500">
                                 <li className="flex items-center gap-2 hover:text-gray-900 transition-colors">
-                                    <Instagram size={14} /> Instagram
+                                    <a href="https://instagram.com/notoxlabel" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                                        <Instagram size={14} /> Instagram
+                                    </a>
                                 </li>
                                 <li className="flex items-center gap-2 hover:text-gray-900 transition-colors">
                                     <ArrowUpRight size={14} /> Twitter

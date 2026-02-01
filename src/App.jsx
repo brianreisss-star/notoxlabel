@@ -34,12 +34,51 @@ const ProtectedRoute = ({ children }) => {
 
 // Handle OAuth Redirects
 const AuthCallback = () => {
+    const { setUser } = useUser();
+    const navigate = useNavigate();
+
     useEffect(() => {
-        // Simple delay to show the nice loading state, then go to onboarding check
-        setTimeout(() => {
-            window.location.href = '/onboarding';
-        }, 1500);
-    }, []);
+        const handleCallback = async () => {
+            try {
+                // Get the hash fragment from URL (Supabase returns tokens in hash)
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                const accessToken = hashParams.get('access_token');
+
+                if (accessToken) {
+                    // Store token and get user info
+                    localStorage.setItem('notoxlabel_token', accessToken);
+
+                    // Fetch user data from Supabase
+                    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/auth/v1/user`, {
+                        headers: {
+                            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${accessToken}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const userData = await response.json();
+                        localStorage.setItem('notoxlabel_user', JSON.stringify(userData));
+                        setUser(userData);
+
+                        // Redirect to dashboard after successful auth
+                        setTimeout(() => navigate('/'), 500);
+                    } else {
+                        throw new Error('Failed to fetch user data');
+                    }
+                } else {
+                    throw new Error('No access token found');
+                }
+            } catch (error) {
+                console.error('OAuth callback error:', error);
+                // Redirect to auth page on error
+                setTimeout(() => navigate('/auth'), 1500);
+            }
+        };
+
+        handleCallback();
+    }, [setUser, navigate]);
+
     return (
         <div className="h-screen flex items-center justify-center bg-white font-sans">
             <div className="text-center">
