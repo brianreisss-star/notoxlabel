@@ -51,10 +51,15 @@ const Onboarding = () => {
         }
     };
 
-    const finishOnboarding = () => {
-        updateUser({ ...formData, onboardingCompleted: true });
-        addXp(100);
-        navigate('/');
+    const finishOnboarding = async () => {
+        try {
+            await updateUser({ ...formData, onboarding_completed: true });
+            await addXp(100);
+            navigate('/');
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao salvar perfil. Tente novamente.");
+        }
     };
 
     const toggleSelection = (field, value) => {

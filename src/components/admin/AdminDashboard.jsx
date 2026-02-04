@@ -217,7 +217,7 @@ const AdminDashboard = () => {
                     </div>
 
                     <h3 className="text-xl font-black text-gray-900 mb-2 leading-none">Token Efficiency</h3>
-                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-8">Revenue vs. Claude API Cost</p>
+                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-8">Revenue vs. AI API Cost</p>
 
                     <div className="space-y-6">
                         <div className="flex items-center justify-between pb-4 border-b border-gray-50">

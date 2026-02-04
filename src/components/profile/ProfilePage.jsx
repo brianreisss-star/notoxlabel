@@ -614,6 +614,7 @@ const ProfilePage = () => {
                                     <div className={`w-2 h-2 rounded-full ${isApiKeyConfigured() ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300'}`}></div>
                                 </div>
                                 <p className="text-xs text-gray-400 font-medium">{isApiKeyConfigured() ? 'NoTox IA Ativa' : 'Modo Demonstração Ativo'}</p>
+                                {/* AI Status Indicator */}
                             </div>
                         </div>
                         <ChevronRight className="text-gray-200 group-hover:text-gray-900 transition-colors" />
