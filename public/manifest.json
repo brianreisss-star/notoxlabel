@@ -1,7 +1,7 @@
 {
-    "name": "RotuLimpo - A verdade no rótulo",
-    "short_name": "RotuLimpo",
-    "description": "Analise rótulos de produtos e descubra a verdade sobre os ingredientes",
+    "name": "NoToxLabel - A verdade no rótulo",
+    "short_name": "NoToxLabel",
+    "description": "Analise rótulos de produtos e descubra a verdade sobre os ingredientes com IA",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",

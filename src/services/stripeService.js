@@ -1,31 +1,33 @@
 /**
- * NoToxLabel - Stripe Payment Service (MVP)
- * Uses Payment Links for simple subscription management.
+ * NoToxLabel - Stripe Service
+ * Frontend wrapper for calling serverless checkout functions
  */
 
-// REPLACE THESE LINKS WITH YOUR REAL STRIPE PAYMENT LINKS
-export const STRIPE_LINKS = {
-    essencial: "https://buy.stripe.com/6oU8wPbpj5Kzarz25qgw000",
-    unlimited: "https://buy.stripe.com/3cI28r2SNc8Xarz9xSgw001",
-    pro: "https://buy.stripe.com/eVqeVdbpjfl9gPX39ugw002"
-};
+export const createCheckoutSession = async (planId, userId, userEmail) => {
+    try {
+        const response = await fetch('/api/checkout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                planId,
+                userId,
+                userEmail, // Important for receipt
+                returnUrl: window.location.origin + '/profile' // Return to profile after payment
+            }),
+        });
 
-export const createCheckoutSession = async (planId, userId) => {
-    console.log(`Initiating payment for ${planId} (User: ${userId})`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Checkout initialization failed');
+        }
 
-    const link = STRIPE_LINKS[planId];
+        const data = await response.json();
+        return data; // { url: '...' }
 
-    if (!link) {
-        throw new Error("Plano inválido ou link não configurado.");
+    } catch (error) {
+        console.error('Stripe Service Error:', error);
+        throw error;
     }
-
-    // In a real app, you might want to append ?client_reference_id={userId} 
-    // to the URL to track who paid via webhook.
-    const finalUrl = `${link}?client_reference_id=${userId}`;
-
-    // Simulate short delay for UX
-    await new Promise(r => setTimeout(r, 800));
-
-    // Return the URL for redirection
-    return { url: finalUrl };
 };
