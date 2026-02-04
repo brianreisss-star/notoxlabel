@@ -1,65 +1,63 @@
 import React, { useState } from 'react';
-import { Check, Zap, Crown, ShieldCheck, ArrowLeft, CreditCard, Users, HeartPulse, Sparkles } from 'lucide-react';
+import { Check, Zap, Crown, ShieldCheck, ArrowLeft, CreditCard, Users, HeartPulse, Sparkles, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import { motion } from 'framer-motion';
 import { createCheckoutSession } from '../../services/stripeService';
-import { Loader2 } from 'lucide-react';
 
 const PlansPage = () => {
     const navigate = useNavigate();
-    const { credits, user } = useUser();
+    const { user } = useUser();
     const [isPaying, setIsPaying] = useState(null); // planId or null
 
     const plans = [
         {
-            id: 'essencial',
-            name: 'Essencial',
+            id: 'credits_50',
+            name: 'Pack Créditos',
             price: 'R$ 19,90',
-            period: '/mês',
-            description: 'Para quem quer o básico da transparência.',
+            period: '/único',
+            description: 'Recarregue 50 análises para usar quando quiser.',
             features: [
-                '30 análises de IA por mês',
-                'Histórico básico (30 dias)',
-                'Suporte via e-mail'
+                '50 análises de IA (sem validade)',
+                'Histórico vitalício',
+                'Sem recorrência (pagamento único)'
             ],
-            buttonText: 'Assinar Essencial',
+            buttonText: 'Comprar Pack',
             current: false,
-            premium: true,
+            premium: false,
             color: 'bg-gray-50'
         },
         {
-            id: 'unlimited',
-            name: 'Plus',
-            price: 'R$ 39,90',
+            id: 'pro_monthly',
+            name: 'NoTox Pro',
+            price: 'R$ 29,90',
             period: '/mês',
-            description: 'Mais liberdade para o seu dia a dia.',
+            description: 'Liberdade total para transformar sua alimentação.',
             features: [
-                '100 análises de IA por mês',
-                'Jornada completa vitalícia',
+                'Análises Ilimitadas de IA',
+                'Acesso ao Chat com Nutri IA',
                 'Alertas de riscos em tempo real',
-                'Suporte prioritário 24/7'
+                'Suporte prioritário'
             ],
-            buttonText: 'Assinar Plus',
+            buttonText: 'Assinar Mensal',
             current: false,
             premium: true,
             highlight: true,
             color: 'bg-white'
         },
         {
-            id: 'pro',
-            name: 'Pro Health',
-            price: 'R$ 89,90',
-            period: '/mês',
-            description: 'Para profissionais de saúde e autoridade.',
+            id: 'pro_annual',
+            name: 'Pro Anual',
+            price: 'R$ 299,00',
+            period: '/ano',
+            description: 'Melhor custo-benefício (2 meses grátis).',
             features: [
-                'Análises Ilimitadas de IA',
-                'Selo de Especialista Verificado',
-                'Poste Dicas para a Comunidade',
-                'Link direto para seu Instagram',
-                'Analytics de Tendências de Consumo'
+                'Todos os benefícios Pro',
+                'Selo de Apoiador Fundador',
+                'Acesso antecipado a novas features',
+                'Economia de R$ 60,00'
             ],
-            buttonText: 'Seja Pro Health',
+            buttonText: 'Assinar Anual',
             current: false,
             premium: true,
             color: 'bg-gray-900',
@@ -68,11 +66,9 @@ const PlansPage = () => {
     ];
 
     const handleSelectPlan = async (planId) => {
-        if (planId === 'free') return;
-
         setIsPaying(planId);
         try {
-            const session = await createCheckoutSession(planId, user?.id);
+            const session = await createCheckoutSession(planId, user?.id, user?.email);
             if (session?.url) {
                 window.location.href = session.url;
             }
