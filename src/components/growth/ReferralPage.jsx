@@ -6,7 +6,7 @@ import BottomNav from '../layout/BottomNav';
 import { motion } from 'framer-motion';
 
 const ReferralPage = () => {
-    const { referralCode, setCustomReferralCode, addCredits, profile } = useUser();
+    const { referralCode, setCustomReferralCode, addCredits, profile, redeemInvite } = useUser();
     const navigate = useNavigate();
     const [copied, setCopied] = useState(false);
     const [referralInput, setReferralInput] = useState('');
@@ -38,13 +38,23 @@ const ReferralPage = () => {
         setTimeout(() => setMessage({ text: '', type: '' }), 4000);
     };
 
-    const applyReferral = () => {
-        if (referralInput.trim().length >= 4) {
-            addCredits(2);
+    const applyReferral = async () => {
+        if (referralInput.trim().length < 4) return;
+
+        try {
+            await redeemInvite(referralInput.trim());
             setMessage({ text: 'Parabéns! Você ganhou +2 créditos.', type: 'success' });
             setReferralInput('');
-            setTimeout(() => setMessage({ text: '', type: '' }), 5000);
+        } catch (error) {
+            let msg = 'Erro ao ativar código.';
+            if (error.message === 'CONVITE_JA_USADO') msg = 'Você já ativou um convite antes.';
+            if (error.message === 'CODIGO_INVALIDO') msg = 'Código não encontrado.';
+            if (error.message === 'AUTO_INDICACAO_PROIBIDA') msg = 'Não pode usar próprio código.';
+            if (error.message === 'CUPOM_INVALIDO') msg = 'Cupom inválido.';
+            setMessage({ text: msg, type: 'error' });
         }
+
+        setTimeout(() => setMessage({ text: '', type: '' }), 5000);
     };
 
     const handleShare = async () => {

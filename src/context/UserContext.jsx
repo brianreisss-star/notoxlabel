@@ -270,6 +270,46 @@ export const UserProvider = ({ children }) => {
 
     const visibleHistory = isPro ? history : history.slice(0, 5);
 
+    const redeemInvite = async (code) => {
+        if (!code) return;
+
+        // 1. Check if already Redeemed
+        if (profile.referral_redeemed) throw new Error('CONVITE_JA_USADO');
+        if (code.toUpperCase() === profile.referral_code) throw new Error('AUTO_INDICACAO_PROIBIDA');
+
+        // 2. Check if Code Exists (User or Coupon)
+        // Check local coupons first
+        const validCoupons = {
+            'HEALTHY50': { credits: 50, plan: 'free' },
+            'BIOHACKER_PRO': { credits: 100, plan: 'pro' },
+            'INFLUENCER_999': { credits: 999, plan: 'pro' }
+        };
+
+        if (validCoupons[code.toUpperCase()]) {
+            return applyCoupon(code);
+        }
+
+        // Check if it's a valid User Code
+        const isUnique = await supabase.checkReferralCodeUnique(code);
+        // If isUnique is TRUE, it means code DOES NOT EXIST (nobody has it).
+        // If isUnique is FALSE, it means someone HAS it.
+        if (isUnique) throw new Error('CODIGO_INVALIDO');
+
+        // 3. Apply Reward
+        const reward = 2;
+        const updates = {
+            credits: profile.credits + reward,
+            referral_redeemed: true,
+            referred_by: code.toUpperCase()
+        };
+
+        await updateUser(updates);
+        setProfile(prev => ({ ...prev, ...updates }));
+
+        // TODO: Reward the referrer (need backend function for security)
+        return true;
+    };
+
     const applyCoupon = async (code) => {
         // Mock coupon logic for influencers
         const validCoupons = {
@@ -285,7 +325,6 @@ export const UserProvider = ({ children }) => {
                 subscription_plan: coupon.plan === 'pro' ? 'pro' : profile.subscription_plan
             };
             await updateUser(updates);
-            alert(`🎟️ Cupom Ativado! +${coupon.credits} créditos adicionados.`);
             return true;
         }
         throw new Error('CUPOM_INVALIDO');
@@ -322,6 +361,7 @@ export const UserProvider = ({ children }) => {
         addScanToHistory,
         updateEvolution,
         applyCoupon,
+        redeemInvite, // New Function
         setCustomReferralCode,
         referralCode: profile.referral_code,
         loading

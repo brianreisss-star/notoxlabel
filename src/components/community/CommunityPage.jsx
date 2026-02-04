@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '../../context/UserContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, Heart, Share2, Plus, X, ShieldCheck, Instagram, Award, CheckCircle2, MessageCircle } from 'lucide-react';

@@ -613,7 +613,7 @@ const ProfilePage = () => {
                                     <p className="font-bold text-gray-900">Inteligência Artificial</p>
                                     <div className={`w-2 h-2 rounded-full ${isApiKeyConfigured() ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300'}`}></div>
                                 </div>
-                                <p className="text-xs text-gray-400 font-medium">{isApiKeyConfigured() ? 'Conectado ao Claude 3.5' : 'Modo Demonstração Ativo'}</p>
+                                <p className="text-xs text-gray-400 font-medium">{isApiKeyConfigured() ? 'NoTox IA Ativa' : 'Modo Demonstração Ativo'}</p>
                             </div>
                         </div>
                         <ChevronRight className="text-gray-200 group-hover:text-gray-900 transition-colors" />

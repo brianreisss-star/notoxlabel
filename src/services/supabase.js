@@ -168,8 +168,8 @@ export const updateProfile = async (userId, profileData) => {
     return supabaseFetch(`/profiles?id=eq.${userId}`, {
         method: 'PATCH',
         body: JSON.stringify({
-            ...updates,
-            updated_at: new Date().toISOString()
+            ...updates
+            // updated_at removed to fix "column not found" error
         })
     });
 };
@@ -190,8 +190,8 @@ export const createProfile = async (userId, profileData) => {
         body: JSON.stringify({
             id: userId,
             ...profileData,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            created_at: new Date().toISOString()
+            // updated_at removed
         })
     });
 };
