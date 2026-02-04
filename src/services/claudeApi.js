@@ -20,11 +20,8 @@ const getApiKey = () => {
  * @returns {Promise<Object>} - Analysis result
  */
 export const analyzeLabel = async (imageBase64) => {
-    const apiKey = getApiKey();
-
-    if (!apiKey) {
-        throw new Error('API_KEY_MISSING');
-    }
+    // const apiKey = getApiKey(); // Deprecated: Managed by Backend
+    // if (!apiKey) throw new Error('API_KEY_MISSING');
 
     const images = Array.isArray(imageBase64) ? imageBase64 : [imageBase64];
 
@@ -77,33 +74,21 @@ Retorne APENAS um JSON válido no seguinte formato:
 }`;
 
     try {
-        console.log(`[ClaudeAPI] Initiating analysis for ${images.length} images...`);
-        const response = await fetch(CLAUDE_API_URL, {
+        console.log(`[ClaudeAPI] Initiating analysis via Backend Proxy...`);
+
+        // PRODUCTION: Call Vercel Serverless Function
+        const response = await fetch('/api/analyze', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01',
-                'anthropic-dangerous-direct-browser-access': 'true'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: 'claude-3-haiku-20240307', // FASTEST & CHEAPEST
-                max_tokens: 4096,
-                messages: [
-                    {
-                        role: 'user',
-                        content: [
-                            ...imageBlocks,
-                            {
-                                type: 'text',
-                                text: `Analise a(s) lista(s) de ingredientes desta(s) ${images.length} imagem(ns). Se houver vários produtos, consolide a análise ou foque no principal, mas extraia todos os riscos relevantes. Retorne APENAS o JSON.`
-                            }
-                        ]
-                    }
-                ],
-                system: systemPrompt
+                provider: 'claude',
+                mode: 'scan',
+                data: { images }
             })
         });
+
+        // FALLBACK: If API fails (e.g. running locally without Vercel), verify if we have local key 
+        // Logic for local dev fallback omitted to enforce security best practices.
 
         if (!response.ok) {
             const errorData = await response.json();

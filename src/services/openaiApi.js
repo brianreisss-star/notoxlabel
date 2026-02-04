@@ -35,8 +35,8 @@ const findIngredientInDB = (name) => {
 };
 
 export const analyzeLabelOpenAI = async (imageBase64) => {
-    const apiKey = getApiKey();
-    if (!apiKey) throw new Error('API_KEY_MISSING');
+    // const apiKey = getApiKey();
+    // if (!apiKey) throw new Error('API_KEY_MISSING');
 
     const images = Array.isArray(imageBase64) ? imageBase64 : [imageBase64];
 
@@ -90,20 +90,13 @@ Retorne APENAS um JSON válido no seguinte formato:
 }`;
 
     try {
-        const response = await fetch(OPENAI_API_URL, {
+        const response = await fetch('/api/analyze', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: "gpt-4o",
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: content }
-                ],
-                max_tokens: 4000,
-                response_format: { type: "json_object" } // Enforce JSON
+                provider: 'openai',
+                mode: 'scan',
+                data: { images }
             })
         });
 

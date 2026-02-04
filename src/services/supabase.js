@@ -221,6 +221,22 @@ export const addScan = async (userId, scanResult) => {
     });
 };
 
+// ==================== SECURE FUNCTIONS (RPC) ====================
+
+export const rpcDeductCredits = async (amount) => {
+    return supabaseFetch('/rpc/deduct_credits', {
+        method: 'POST',
+        body: JSON.stringify({ amount })
+    });
+};
+
+export const rpcAddXp = async (amount) => {
+    return supabaseFetch('/rpc/add_xp', {
+        method: 'POST',
+        body: JSON.stringify({ amount })
+    });
+};
+
 // ==================== CHAT SYSTEM ====================
 
 export const getConversations = async (userId) => {

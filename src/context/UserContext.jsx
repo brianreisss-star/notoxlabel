@@ -183,14 +183,21 @@ export const UserProvider = ({ children }) => {
     };
 
     const addXp = async (amount) => {
+        // Optimistic UI Update
         const newXp = profile.xp + amount;
         const newLevel = Math.floor(newXp / 100) + 1;
-
-        const updates = { xp: newXp, level: newLevel };
-        setProfile(prev => ({ ...prev, ...updates }));
+        setProfile(prev => ({ ...prev, xp: newXp, level: newLevel }));
 
         if (user && !isDemo && supabase.isSupabaseConfigured()) {
-            await supabase.updateProfile(user.id, updates);
+            try {
+                const result = await supabase.rpcAddXp(amount);
+                if (result.success && result.level_up) {
+                    alert(`🎉 Parabéns! Você subiu para o Nível ${result.new_level}!`);
+                }
+            } catch (err) {
+                console.error("Secure XP Error:", err);
+                // Rollback if needed, or just log
+            }
         }
     };
 
@@ -204,11 +211,22 @@ export const UserProvider = ({ children }) => {
     };
 
     const deductCredit = async () => {
+        // Optimistic UI
         const newCredits = Math.max(0, profile.credits - 1);
         setProfile(prev => ({ ...prev, credits: newCredits }));
 
         if (user && !isDemo && supabase.isSupabaseConfigured()) {
-            await supabase.updateProfile(user.id, { credits: newCredits });
+            try {
+                const result = await supabase.rpcDeductCredits(1);
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+            } catch (err) {
+                console.error("Secure Credit Error:", err);
+                // If failed, rollback UI
+                setProfile(prev => ({ ...prev, credits: prev.credits + 1 }));
+                alert("Erro ao descontar créditos. Verifique sua conexão.");
+            }
         }
     };
 
