@@ -10,9 +10,8 @@ const AdminDashboard = () => {
     const { user, profile, fullHistoryCount, history } = useUser();
     const navigate = useNavigate();
 
-    // Security Check - DEBUG MODE (Permissive)
-    const isAdmin = true; // FORCE TRUE TO DEBUG BLANK SCREEN
-    // const isAdmin = user?.email === 'admin@notoxlabel.com.br' || profile?.subscription_plan === 'admin' || user?.email?.includes('admin');
+    // Security Check
+    const isAdmin = user?.email === 'admin@notoxlabel.com.br' || profile?.subscription_plan === 'admin';
 
     if (!isAdmin) {
         return (
