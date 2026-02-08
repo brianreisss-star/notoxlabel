@@ -107,7 +107,28 @@ Retorne APENAS um JSON válido no seguinte formato:
 
         const data = await response.json();
         const contentStr = data.choices[0].message.content;
-        const result = JSON.parse(contentStr);
+
+        // Parse JSON from response
+        let result;
+        try {
+            // Greedy JSON extraction
+            const firstOpen = contentStr.indexOf('{');
+            const lastClose = contentStr.lastIndexOf('}');
+            if (firstOpen !== -1 && lastClose !== -1) {
+                result = JSON.parse(contentStr.substring(firstOpen, lastClose + 1));
+
+                // Check for unreadable image error
+                if (result.error === 'IMAGE_UNREADABLE') {
+                    throw new Error(result.message || 'Imagem ilegível para o GPT-4o. Tente focar melhor.');
+                }
+            } else {
+                throw new Error('Não foi possível ler os ingredientes na imagem.');
+            }
+        } catch (parseError) {
+            console.error('[OpenAIAPI] JSON Parse Error:', parseError, contentStr);
+            if (parseError.message.includes('ilegível')) throw parseError;
+            throw new Error('Erro ao processar imagem. Tente uma foto mais clara.');
+        }
 
         // Enrich with local database
         result.ingredients = result.ingredients.map(ing => {

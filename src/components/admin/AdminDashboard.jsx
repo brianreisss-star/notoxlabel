@@ -4,6 +4,7 @@ import { useUser } from '../../context/UserContext';
 import { motion } from 'framer-motion';
 import { TrendingUp, Users, Zap, BarChart3, Map, Package, ArrowUpRight, Crown, ShieldAlert, Download, Target, TrendingDown, PieChart, Activity, Plus, Trash2, ArrowLeft, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 
 const AdminDashboard = () => {
     const { user, profile, fullHistoryCount, history } = useUser();
@@ -30,17 +31,62 @@ const AdminDashboard = () => {
 
     const [realMetrics, setRealMetrics] = useState({
         users: 0,
-        scans: 0
+        scans: 0,
+        pro_monthly: 0,
+        pro_annual: 0,
+        chartData: []
     });
 
     useEffect(() => {
         const fetchMetrics = async () => {
             try {
+                // 1. Basic Counts
                 const { count: usersCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
                 const { count: scansCount } = await supabase.from('scan_history').select('*', { count: 'exact', head: true });
+
+                // 2. Plan Distribution (for MRR and Charts)
+                const { data: plansData } = await supabase.from('profiles').select('subscription_plan');
+                const planCounts = { pro_monthly: 0, pro_annual: 0 };
+                plansData?.forEach(p => {
+                    if (p.subscription_plan === 'pro_monthly') planCounts.pro_monthly++;
+                    if (p.subscription_plan === 'pro_annual') planCounts.pro_annual++;
+                });
+
+                // 3. Scan Growth Chart (Last 7 Days)
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                const { data: recentScans } = await supabase
+                    .from('scan_history')
+                    .select('created_at')
+                    .gte('created_at', sevenDaysAgo.toISOString());
+
+                // Group scans by day
+                const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+                const agrupado = {};
+
+                // Fill with zeros first
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    agrupado[days[d.getDay()]] = 0;
+                }
+
+                recentScans?.forEach(s => {
+                    const dayName = days[new Date(s.created_at).getDay()];
+                    if (agrupado[dayName] !== undefined) agrupado[dayName]++;
+                });
+
+                const formattedChartData = Object.keys(agrupado).reverse().map(name => ({
+                    name,
+                    scans: agrupado[name]
+                }));
+
                 setRealMetrics({
                     users: usersCount || 0,
-                    scans: scansCount || 0
+                    scans: scansCount || 0,
+                    pro_monthly: planCounts.pro_monthly,
+                    pro_annual: planCounts.pro_annual,
+                    chartData: formattedChartData
                 });
             } catch (error) {
                 console.error('Error fetching admin metrics:', error);
@@ -49,13 +95,14 @@ const AdminDashboard = () => {
         if (isAdmin) fetchMetrics();
     }, [isAdmin]);
 
+    const mrr = (realMetrics.pro_monthly * 29.90) + (realMetrics.pro_annual * 299 / 12);
+
     const metrics = [
         { label: "Total de Cadastros", value: realMetrics.users, growth: "+12%", icon: <Users />, color: "bg-blue-50 text-blue-600" },
         // Estimate: ~1500 tokens per scan average
         { label: "Tokens Utilizados", value: `${(realMetrics.scans * 1.5).toFixed(1)}k`, growth: "+24%", icon: <Zap />, color: "bg-yellow-50 text-yellow-600" },
         { label: "Scans (Total)", value: realMetrics.scans, growth: "+8%", icon: <BarChart3 />, color: "bg-emerald-50 text-emerald-600" },
-        // Estimate: 5% conversion at R$ 29.90
-        { label: "MRR (Estimado)", value: `R$ ${(realMetrics.users * 0.05 * 29.90).toFixed(0)}`, growth: "+15%", icon: <Crown />, color: "bg-purple-50 text-purple-600" }
+        { label: "MRR Real", value: `R$ ${mrr.toFixed(0)}`, growth: "+15%", icon: <Crown />, color: "bg-purple-50 text-purple-600" }
     ];
 
     const financialKpis = [
@@ -170,6 +217,94 @@ const AdminDashboard = () => {
                                 <p className="text-[8px] font-bold text-gray-400 mt-1 italic">{kpi.info}</p>
                             </div>
                         ))}
+                    </div>
+                </div>
+
+                {/* Growth Chart Section */}
+                <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
+                    <div className="mb-8">
+                        <h2 className="text-xl font-black text-gray-900">Crescimento de Scans</h2>
+                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Volume de análises dos últimos 7 dias</p>
+                    </div>
+
+                    <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={realMetrics.chartData}>
+                                <defs>
+                                    <linearGradient id="colorScans" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#FF385C" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#FF385C" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
+                                <XAxis
+                                    dataKey="name"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fontSize: 10, fontWeight: 900, fill: '#9CA3AF' }}
+                                    dy={10}
+                                />
+                                <YAxis hide />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="scans"
+                                    stroke="#FF385C"
+                                    strokeWidth={4}
+                                    fillOpacity={1}
+                                    fill="url(#colorScans)"
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                {/* Revenue & Subscriptions Bar Chart */}
+                <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden group">
+                    <div className="flex justify-between items-center mb-10">
+                        <div>
+                            <h3 className="text-xl font-black text-gray-900 leading-none">Receita por Plano</h3>
+                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Comparativo de performance financeira</p>
+                        </div>
+                        <div className="p-3 bg-purple-50 text-purple-500 rounded-2xl">
+                            <BarChart3 size={24} />
+                        </div>
+                    </div>
+
+                    <div className="h-[200px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={[
+                                { name: 'Créditos', value: realMetrics.scans > 0 ? 500 : 0, color: '#3B82F6' }, // Mocking credits buy for now as it's separate
+                                { name: 'Mensal', value: realMetrics.pro_monthly * 29.90, color: '#FF385C' },
+                                { name: 'Anual', value: realMetrics.pro_annual * 299, color: '#F59E0B' },
+                            ]}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
+                                <XAxis
+                                    dataKey="name"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fontSize: 10, fontWeight: 900, fill: '#9CA3AF' }}
+                                />
+                                <YAxis hide domain={[0, 6000]} />
+                                <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }} />
+                                <Bar dataKey="value" radius={[10, 10, 0, 0]} barSize={40}>
+                                    {[
+                                        { color: '#3B82F6' },
+                                        { color: '#FF385C' },
+                                        { color: '#F59E0B' }
+                                    ].map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    <div className="mt-6 flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        <span>Total MRR Real: R$ {mrr.toFixed(0)}</span>
+                        <span className="text-emerald-500">+18% vs Last Month</span>
                     </div>
                 </div>
 
@@ -381,33 +516,57 @@ const AdminDashboard = () => {
                     <p className="text-[10px] text-gray-400 font-bold mt-3 text-center">Gera textos otimizados para SEO e imagens de capa.</p>
                 </div>
 
-                {/* Popular Products Area (Keep but style better) */}
+                {/* User Management Section */}
                 <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm">
                     <div className="flex justify-between items-center mb-8">
-                        <div className="flex items-center gap-3">
-                            <Package className="text-gray-900" size={20} />
-                            <h2 className="text-xl font-black text-gray-900">Itens Mais Pesquisados</h2>
+                        <div>
+                            <h2 className="text-xl font-black text-gray-900 leading-none">Gestão de Usuários</h2>
+                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Controle de acessos e planos</p>
                         </div>
-                        <BarChart3 className="text-gray-200" size={20} />
+                        <div className="flex gap-2">
+                            <button className="px-4 py-2 bg-gray-50 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-gray-100 italic">Filtrar: Todos</button>
+                            <button className="px-4 py-2 bg-purple-50 text-purple-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-purple-100">Pro Only</button>
+                        </div>
                     </div>
 
-                    <div className="space-y-4">
-                        {topProducts.map((p, i) => (
-                            <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                <div>
-                                    <p className="font-bold text-gray-900 text-sm">{p.name}</p>
-                                    <p className={`text-[8px] font-black uppercase tracking-widest mt-0.5 ${p.risk === 'High' ? 'text-red-500' : p.risk === 'Medium' ? 'text-orange-500' : 'text-emerald-500'}`}>
-                                        Risco: {p.risk}
-                                    </p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-black text-gray-900 text-sm">{p.scans}</p>
-                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Scans</p>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="overflow-x-auto -mx-8 px-8">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-gray-50">
+                                    <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Usuário</th>
+                                    <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Plano</th>
+                                    <th className="pb-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {[
+                                    { name: "Ana Silva", email: "ana@email.com", plan: "Pro", color: "text-purple-600 bg-purple-50" },
+                                    { name: "Bruno Costa", email: "bruno@email.com", plan: "Free", color: "text-gray-400 bg-gray-50" },
+                                    { name: "Carla Souza", email: "carla@email.com", plan: "Pro Anual", color: "text-amber-600 bg-amber-50" }
+                                ].map((u, i) => (
+                                    <tr key={i} className="group">
+                                        <td className="py-4">
+                                            <p className="font-bold text-gray-900 text-sm">{u.name}</p>
+                                            <p className="text-[10px] text-gray-400 font-medium">{u.email}</p>
+                                        </td>
+                                        <td className="py-4">
+                                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${u.color}`}>
+                                                {u.plan}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 text-right">
+                                            <button className="p-2 text-gray-300 hover:text-gray-900 transition-colors">
+                                                <TrendingUp size={16} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+
+                {/* Popular Products Area */}
 
                 {/* Regional Heatmap Placeholder */}
                 <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden aspect-video flex flex-col justify-center items-center text-center">

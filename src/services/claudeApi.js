@@ -111,12 +111,18 @@ Retorne APENAS um JSON válido no seguinte formato:
             if (firstOpen !== -1 && lastClose !== -1) {
                 const jsonStr = content.substring(firstOpen, lastClose + 1);
                 result = JSON.parse(jsonStr);
+
+                // Check for unreadable image error returned as JSON
+                if (result.error === 'IMAGE_UNREADABLE') {
+                    throw new Error(result.message || 'Imagem ilegível. Tente focar melhor nos ingredientes.');
+                }
             } else {
-                throw new Error('No valid JSON found in response');
+                throw new Error('Não foi possível ler os ingredientes. Verifique a nitidez da foto.');
             }
         } catch (parseError) {
             console.error('[ClaudeAPI] JSON Parse Error:', parseError, content);
-            throw new Error('PARSE_ERROR');
+            if (parseError.message.includes('ilegível')) throw parseError;
+            throw new Error('Não conseguimos processar esta imagem. Tente tirar outra foto mais próxima dos ingredientes.');
         }
 
         // Enrich with local database

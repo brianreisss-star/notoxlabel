@@ -6,6 +6,7 @@ import { analyzeLabel, isConfigured, getProvider, setProvider, hashImage, getCac
 import { setApiKey as setClaudeKey } from '../../services/claudeApi';
 import { setOpenAiKey } from '../../services/openaiApi';
 import { motion, AnimatePresence } from 'framer-motion';
+import { resizeImage } from '../../utils/imageUtils';
 
 const ScanPage = () => {
     const { user } = useUser();
@@ -31,12 +32,13 @@ const ScanPage = () => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
+            reader.onloadend = async () => {
+                const resized = await resizeImage(reader.result);
                 if (isBatchMode) {
-                    setPreviews(prev => [...prev, reader.result]);
-                    setPreview(reader.result);
+                    setPreviews(prev => [...prev, resized]);
+                    setPreview(resized);
                 } else {
-                    setPreview(reader.result);
+                    setPreview(resized);
                 }
             };
             reader.readAsDataURL(file);

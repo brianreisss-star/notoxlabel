@@ -26,12 +26,14 @@ const supabaseFetch = async (endpoint, options = {}) => {
         throw new Error('SUPABASE_NOT_CONFIGURED');
     }
 
+    const token = localStorage.getItem('notoxlabel_token') || localStorage.getItem('rotulimpo_token');
+
     const url = `${SUPABASE_URL}/rest/v1${endpoint}`;
     const response = await fetch(url, {
         ...options,
         headers: {
             'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Authorization': token ? `Bearer ${token}` : `Bearer ${SUPABASE_ANON_KEY}`,
             'Content-Type': 'application/json',
             'Prefer': 'return=representation',
             ...options.headers

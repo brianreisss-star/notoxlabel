@@ -39,15 +39,18 @@ export default async function handler(req) {
 // ==========================================
 async function handleScan(provider, apiKey, { images }) {
     const systemPrompt = `Você é um especialista em análise de rótulos de alimentos e cosméticos. Sua missão é analisar a lista de ingredientes da imagem e retornar uma avaliação detalhada em JSON.
-    REGRAS:
+
+    IMPORTANTE: Se a imagem estiver muito borrada, ilegível ou não contiver uma lista de ingredientes, retorne APENAS um JSON com o campo "error": "IMAGE_UNREADABLE" e um campo "message" explicando o porquê.
+
+    REGRAS DE ANÁLISE:
     1. Extraia TODOS os ingredientes visíveis na imagem
     2. Para cada ingrediente, avalie o risco à saúde (1=crítico, 10=excelente)
     3. Identifique ingredientes problemáticos e explique por quê
-    4. Considere o contexto brasileiro de regulamentação
+    4. Considere o contexto brasileiro de regulamentação (ANVISA)
     
     Retorne APENAS um JSON válido no seguinte formato:
     {
-      "product_name": "Nome do produto se visível, ou 'Produto Analisado'",
+      "product_name": "Nome do produto",
       "category": "alimento|cosmético|medicamento|outro",
       "ingredients_detected": ["ingrediente1", "ingrediente2"],
       "overall_score": 1-10,
@@ -70,7 +73,7 @@ async function handleScan(provider, apiKey, { images }) {
 
     if (provider === 'openai') {
         const content = [
-            { type: "text", text: "Analise a(s) lista(s) de ingredientes desta(s) imagem(ns) de rótulo. Retorne APENAS um JSON válido." }
+            { type: "text", text: "Analise a lista de ingredientes. Retorne apenas JSON." }
         ];
         images.forEach(img => content.push({ type: "image_url", image_url: { url: img, detail: "high" } }));
 
@@ -106,9 +109,9 @@ async function handleScan(provider, apiKey, { images }) {
                 'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                model: 'claude-3-haiku-20240307',
+                model: 'claude-3-5-sonnet-20240620', // Better OCR than Haiku
                 max_tokens: 4096,
-                messages: [{ role: 'user', content: [...imageBlocks, { type: 'text', text: "Analise e retorne apenas o JSON." }] }],
+                messages: [{ role: 'user', content: [...imageBlocks, { type: 'text', text: "Analise a lista de ingredientes desta imagem e retorne apenas o JSON." }] }],
                 system: systemPrompt
             })
         });
