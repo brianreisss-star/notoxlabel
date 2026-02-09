@@ -94,7 +94,7 @@ const LandingPage = () => {
                             {/* Hero Image Mockup */}
                             <div className="rounded-[4rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border-[12px] border-white">
                                 <img
-                                    src="/assets/hero_mockup.png"
+                                    src="/assets/hero_cola_analysis.png"
                                     alt="NoToxLabel App Preview"
                                     className="w-full h-auto"
                                 />
