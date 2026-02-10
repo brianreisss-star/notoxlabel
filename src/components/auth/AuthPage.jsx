@@ -63,17 +63,22 @@ const AuthPage = () => {
 
                 if (result.user) {
                     // Check if email confirmation is required (session might be null)
-                    if (result.session) {
+                    if (result.session || result.access_token) {
+                        const token = result.session?.access_token || result.access_token;
+                        localStorage.setItem('notoxlabel_token', token);
+                        localStorage.setItem('notoxlabel_user', JSON.stringify(result.user));
                         setUser(result.user);
+
                         if (refCode) {
                             addCredits(2);
-                            alert(`Bem-vindo! Você ganhou +2 créditos pela indicação.`);
                         }
-                        setTimeout(() => navigate('/onboarding'), 100);
+
+                        // Go to onboarding
+                        navigate('/onboarding');
                     } else {
                         // Email confirmation flow
-                        alert("Conta criada com sucesso! Verifique seu e-mail para confirmar o cadastro antes de entrar.");
-                        setIsLogin(true); // Switch back to login
+                        alert("Quase lá! Enviamos um e-mail de confirmação. Por favor, clique no link no seu e-mail para ativar sua conta.");
+                        setIsLogin(true); // Switch to login so they can enter after confirming
                     }
                 }
             }

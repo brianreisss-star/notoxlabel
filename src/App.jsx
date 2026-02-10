@@ -24,11 +24,20 @@ import PaymentSuccessPage from './components/payment/PaymentSuccessPage';
 import HistoryPage from './components/history/HistoryPage';
 
 const ProtectedRoute = ({ children }) => {
-    const { user } = useUser();
-    // Entry point is now Auth
+    const { user, profile, loading } = useUser();
+    const navigate = useNavigate();
+
+    if (loading) return null;
+
     if (!user) {
         return <Navigate to="/auth" replace />;
     }
+
+    // Redirect to onboarding if not completed (unless already there)
+    if (profile && profile.onboarding_completed === false && window.location.pathname !== '/onboarding') {
+        return <Navigate to="/onboarding" replace />;
+    }
+
     return children;
 };
 
@@ -101,6 +110,7 @@ const AppRoutes = () => {
                 <Route path="/landing" element={<LandingPage />} />
                 <Route path="/auth" element={user ? <Navigate to="/" /> : <AuthPage />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
                 <Route path="/scan" element={<ProtectedRoute><ScanPage /></ProtectedRoute>} />
                 <Route path="/results" element={<ProtectedRoute><ResultsPage /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
@@ -127,10 +137,58 @@ function App() {
     return (
         <ErrorBoundary>
             <UserProvider>
+                <HashTokenHandler />
                 <AppRoutes />
             </UserProvider>
         </ErrorBoundary>
     );
 }
+
+// Global listener for access tokens in Hash (Supabase redirects)
+const HashTokenHandler = () => {
+    const { setUser } = useUser();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const checkHash = async () => {
+            const hash = window.location.hash;
+            if (hash && (hash.includes('access_token=') || hash.includes('type=recovery'))) {
+                const params = new URLSearchParams(hash.substring(1));
+                const accessToken = params.get('access_token');
+
+                if (accessToken) {
+                    localStorage.setItem('notoxlabel_token', accessToken);
+
+                    // Fetch user
+                    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL || 'https://pivljnujitjptsqfvxrx.supabase.co'}/auth/v1/user`, {
+                        headers: {
+                            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+                            'Authorization': `Bearer ${accessToken}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const userData = await response.json();
+                        localStorage.setItem('notoxlabel_user', JSON.stringify(userData));
+                        setUser(userData);
+
+                        // Clear hash
+                        window.history.replaceState(null, null, window.location.pathname);
+
+                        // Redirect to onboarding
+                        navigate('/onboarding');
+                    }
+                }
+            }
+        };
+        checkHash();
+
+        // Also listen for hash changes
+        window.addEventListener('hashchange', checkHash);
+        return () => window.removeEventListener('hashchange', checkHash);
+    }, [setUser, navigate]);
+
+    return null;
+};
 
 export default App;
