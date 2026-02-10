@@ -107,7 +107,11 @@ const ScanPage = () => {
                     result = await analyzeLabel(analysisData);
                     result.image = preview;
 
-                    if (!isBatchMode) cacheAnalysis(imageHash, result);
+                    if (!isBatchMode) {
+                        // Cache result EXCLUDING the large base64 image
+                        const { image, ...resultToCache } = result;
+                        cacheAnalysis(imageHash, resultToCache);
+                    }
                 }
             } else {
                 setLoadingText("Simulando análise...");

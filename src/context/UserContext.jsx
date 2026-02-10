@@ -32,6 +32,28 @@ export const UserProvider = ({ children }) => {
 
     const isDemo = user?.id === 'demo-admin';
 
+    // Emergency Cleanup for QuotaExceededError
+    useEffect(() => {
+        const cleanup = () => {
+            try {
+                // Remove legacy large keys
+                localStorage.removeItem('rotulimpo_analysis_cache');
+                localStorage.removeItem('notoxlabel_analysis_cache');
+
+                // Clear out large history if it exists
+                const h = localStorage.getItem('notoxlabel_history');
+                if (h && h.length > 1000000) { // If > 1MB
+                    localStorage.removeItem('notoxlabel_history');
+                }
+
+                console.log("[NoToxLabel] LocalStorage Cleanup successfully performed.");
+            } catch (e) {
+                console.error("Cleanup failed", e);
+            }
+        };
+        cleanup();
+    }, []);
+
     // 1. Initial Load from Supabase
     useEffect(() => {
         const loadInitialData = async () => {
@@ -138,13 +160,28 @@ export const UserProvider = ({ children }) => {
     // 2. Local Storage Sync (Backup / Demo)
     useEffect(() => {
         if (isDemo || !supabase.isSupabaseConfigured()) {
-            localStorage.setItem('notoxlabel_profile', JSON.stringify(profile));
+            try {
+                localStorage.setItem('notoxlabel_profile', JSON.stringify(profile));
+            } catch (e) {
+                console.warn("Profile Storage Full");
+            }
         }
     }, [profile, isDemo]);
 
     useEffect(() => {
         if (isDemo || !supabase.isSupabaseConfigured()) {
-            localStorage.setItem('notoxlabel_history', JSON.stringify(history));
+            try {
+                // For local storage, only keep last 5 scans and strip images to save space
+                const localHistory = history.slice(0, 5).map(item => {
+                    const { image, ...rest } = item;
+                    return rest;
+                });
+                localStorage.setItem('notoxlabel_history', JSON.stringify(localHistory));
+            } catch (e) {
+                console.warn("History Storage Full, clearing old local scans...");
+                localStorage.removeItem('notoxlabel_history');
+                localStorage.removeItem('rotulimpo_history');
+            }
         }
     }, [history, isDemo]);
 
@@ -168,8 +205,10 @@ export const UserProvider = ({ children }) => {
     };
 
     const updateEvolution = async (metrics) => {
+        // Strip images from evolution data to save space
+        const { image, ...cleanMetrics } = metrics;
         const newEntry = {
-            ...metrics,
+            ...cleanMetrics,
             date: new Date().toISOString()
         };
         const updatedEvolution = [...(profile.evolution || []), newEntry];

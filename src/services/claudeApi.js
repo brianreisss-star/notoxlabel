@@ -205,12 +205,29 @@ export const getCachedAnalysis = (imageHash) => {
  * Cache analysis result
  */
 export const cacheAnalysis = (imageHash, result) => {
-    const cache = JSON.parse(localStorage.getItem('rotulimpo_analysis_cache') || '{}');
-    cache[imageHash] = {
-        result,
-        timestamp: Date.now()
-    };
-    localStorage.setItem('notoxlabel_analysis_cache', JSON.stringify(cache));
+    try {
+        const CACHE_KEY = 'notoxlabel_analysis_cache';
+        const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
+
+        // Safety: Limit cache size to 15 items to avoid QuotaExceededError
+        const keys = Object.keys(cache);
+        if (keys.length >= 15) {
+            delete cache[keys[0]]; // Remove oldest
+        }
+
+        cache[imageHash] = {
+            result,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+    } catch (e) {
+        console.warn('[ClaudeAPI] Cache Storage Full, skipping cache', e);
+        // If full, better to clear it than to keep crashing
+        if (e.name === 'QuotaExceededError') {
+            localStorage.removeItem('notoxlabel_analysis_cache');
+            localStorage.removeItem('rotulimpo_analysis_cache');
+        }
+    }
 };
 
 /**
