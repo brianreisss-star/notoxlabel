@@ -34,6 +34,24 @@ const ProfilePage = () => {
     const [muscleMass, setMuscleMass] = useState(latestEvo.muscle_mass || '');
     const [bodyFat, setBodyFat] = useState(latestEvo.body_fat || '');
 
+    // Sync state when profile loads (important for re-login)
+    React.useEffect(() => {
+        if (profile) {
+            setName(profile.name || user?.name || '');
+            setInstagram(profile.instagram_handle || '');
+            setIsProfessional(profile.is_professional || false);
+            setSpecialty(profile.professional_specialty || '');
+            setProfNumber(profile.professional_number || '');
+            setGoals(profile.goals || []);
+
+            const evo = profile.evolution || [];
+            const last = evo.length > 0 ? evo[evo.length - 1] : {};
+            setWeight(last.weight || '');
+            setMuscleMass(last.muscle_mass || '');
+            setBodyFat(last.body_fat || '');
+        }
+    }, [profile, user]);
+
     const [infoModal, setInfoModal] = useState(null); // 'xp', 'streak', 'badges'
     const [showSecurity, setShowSecurity] = useState(false);
     const [showRanking, setShowRanking] = useState(false);
@@ -272,8 +290,8 @@ const ProfilePage = () => {
                 <div className="flex flex-col items-center mb-10">
                     <div className="relative group mb-6">
                         <div className="w-32 h-32 rounded-full border-4 border-white shadow-2xl shadow-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center">
-                            {user?.photoURL ? (
-                                <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                            {(profile?.photoURL || user?.photoURL) ? (
+                                <img src={profile?.photoURL || user?.photoURL} alt="Profile" className="w-full h-full object-cover" />
                             ) : (
                                 <div className="w-full h-full bg-gradient-to-br from-[#FF385C] to-pink-600 flex items-center justify-center text-white text-4xl font-black">
                                     {profile?.name?.charAt(0) || user?.name?.charAt(0) || 'E'}

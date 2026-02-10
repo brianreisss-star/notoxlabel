@@ -71,18 +71,27 @@ export const UserProvider = ({ children }) => {
                         const sbProfile = await supabase.getProfile(userId);
 
                         if (sbProfile) {
-                            setProfile(sbProfile);
+                            // Ensure CamelCase/snake_case compatibility
+                            const normalizedProfile = {
+                                ...sbProfile,
+                                photoURL: sbProfile.photo_url || sbProfile.photoURL || null
+                            };
+                            setProfile(normalizedProfile);
 
-                            // Sync User Metadata Key: Name
-                            // If Supabase profile has a name but the Auth user metadata is missing/stale, update it.
-                            if (sbProfile.name && (!user?.name || user.name !== sbProfile.name || !user?.user_metadata?.name)) {
+                            // Sync back to Auth User if needed
+                            if (normalizedProfile.name && (!user?.name || user.name !== normalizedProfile.name)) {
                                 const updatedUser = {
                                     ...(user || sessionUser),
-                                    name: sbProfile.name,
-                                    user_metadata: { ...(user?.user_metadata || {}), name: sbProfile.name }
+                                    name: normalizedProfile.name,
+                                    photoURL: normalizedProfile.photoURL,
+                                    user_metadata: {
+                                        ...(user?.user_metadata || {}),
+                                        name: normalizedProfile.name,
+                                        photoURL: normalizedProfile.photoURL
+                                    }
                                 };
                                 setUser(updatedUser);
-                                localStorage.setItem('notoxlabel_user', JSON.stringify(updatedUser)); // Update local persistence
+                                localStorage.setItem('notoxlabel_user', JSON.stringify(updatedUser));
                             }
                         } else {
                             // Create initial profile if it doesn't exist
@@ -187,20 +196,30 @@ export const UserProvider = ({ children }) => {
 
     // 3. Actions
     const updateUser = async (data) => {
+        // Map photoURL to photo_url for Supabase
+        const dbUpdates = { ...data };
+        if (data.photoURL) dbUpdates.photo_url = data.photoURL;
+
         const updatedProfile = { ...profile, ...data };
         setProfile(updatedProfile);
 
-        // Sync name and photo to user state if they changed
+        // Sync name and photo to user state (Auth/LocalStorage)
         if (data.name || data.photoURL) {
             const updatedUser = { ...user };
-            if (data.name) updatedUser.name = data.name;
-            if (data.photoURL) updatedUser.photoURL = data.photoURL;
+            if (data.name) {
+                updatedUser.name = data.name;
+                updatedUser.user_metadata = { ...(updatedUser.user_metadata || {}), name: data.name };
+            }
+            if (data.photoURL) {
+                updatedUser.photoURL = data.photoURL;
+                updatedUser.user_metadata = { ...(updatedUser.user_metadata || {}), photoURL: data.photoURL };
+            }
             setUser(updatedUser);
             localStorage.setItem('notoxlabel_user', JSON.stringify(updatedUser));
         }
 
         if (user && !isDemo && supabase.isSupabaseConfigured()) {
-            await supabase.updateProfile(user.id, data);
+            await supabase.updateProfile(user.id, dbUpdates);
         }
     };
 

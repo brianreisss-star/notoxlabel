@@ -167,11 +167,12 @@ export const getProfile = async (userId) => {
 export const updateProfile = async (userId, profileData) => {
     // Ensure we don't try to update the ID
     const { id, ...updates } = profileData;
+    if (Object.keys(updates).length === 0) return { success: true };
+
     return supabaseFetch(`/profiles?id=eq.${userId}`, {
         method: 'PATCH',
         body: JSON.stringify({
             ...updates
-            // updated_at removed to fix "column not found" error
         })
     });
 };
