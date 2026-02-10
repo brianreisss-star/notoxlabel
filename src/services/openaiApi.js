@@ -106,28 +106,35 @@ Retorne APENAS um JSON válido no seguinte formato:
         }
 
         const data = await response.json();
+
+        if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
+            console.error('[OpenAIAPI] Unexpected data structure:', data);
+            throw new Error('O servidor de IA retornou uma resposta vazia. Verifique sua conexão ou tente outra foto.');
+        }
+
         const contentStr = data.choices[0].message.content;
 
         // Parse JSON from response
         let result;
         try {
-            // Greedy JSON extraction
+            // Greedy JSON extraction (handles extra text or markdown code blocks from AI)
             const firstOpen = contentStr.indexOf('{');
             const lastClose = contentStr.lastIndexOf('}');
             if (firstOpen !== -1 && lastClose !== -1) {
-                result = JSON.parse(contentStr.substring(firstOpen, lastClose + 1));
+                const jsonStr = contentStr.substring(firstOpen, lastClose + 1);
+                result = JSON.parse(jsonStr);
 
                 // Check for unreadable image error
                 if (result.error === 'IMAGE_UNREADABLE') {
                     throw new Error(result.message || 'Imagem ilegível para o GPT-4o. Tente focar melhor.');
                 }
             } else {
-                throw new Error('Não foi possível ler os ingredientes na imagem.');
+                throw new Error('Não foi possível encontrar a análise no formato esperado.');
             }
         } catch (parseError) {
             console.error('[OpenAIAPI] JSON Parse Error:', parseError, contentStr);
-            if (parseError.message.includes('ilegível')) throw parseError;
-            throw new Error('Erro ao processar imagem. Tente uma foto mais clara.');
+            if (parseError.message.includes('ilegível') || parseError.message.includes('formato esperado')) throw parseError;
+            throw new Error('Erro ao processar a resposta da IA. Tente uma foto mais clara.');
         }
 
         // Enrich with local database

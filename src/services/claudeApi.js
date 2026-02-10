@@ -99,7 +99,13 @@ Retorne APENAS um JSON válido no seguinte formato:
         }
 
         const data = await response.json();
-        const content = data.content[0]?.text || '';
+        const content = (data && data.content && data.content[0]) ? data.content[0].text : '';
+
+        if (!content) {
+            console.error('[ClaudeAPI] Unexpected data structure:', data);
+            throw new Error('A IA não retornou uma resposta válida. Tente novamente em instantes.');
+        }
+
         console.log('[ClaudeAPI] Raw Response received.');
 
         // Parse JSON from response
