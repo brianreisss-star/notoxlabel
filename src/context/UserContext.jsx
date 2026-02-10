@@ -251,10 +251,11 @@ export const UserProvider = ({ children }) => {
                 const result = await supabase.rpcAddXp(amount);
                 if (result.success && result.level_up) {
                     alert(`🎉 Parabéns! Você subiu para o Nível ${result.new_level}!`);
+                } else if (!result.success) {
+                    console.error("XP RPC error:", result.error);
                 }
             } catch (err) {
                 console.error("Secure XP Error:", err);
-                // Rollback if needed, or just log
             }
         }
     };
@@ -277,15 +278,18 @@ export const UserProvider = ({ children }) => {
             try {
                 const result = await supabase.rpcDeductCredits(1);
                 if (!result.success) {
-                    throw new Error(result.error);
+                    throw new Error(result.error || 'Erro desconhecido');
                 }
+                return true;
             } catch (err) {
                 console.error("Secure Credit Error:", err);
                 // If failed, rollback UI
                 setProfile(prev => ({ ...prev, credits: prev.credits + 1 }));
-                alert("Erro ao descontar créditos. Verifique sua conexão.");
+                alert(`Erro ao descontar créditos: ${err.message}`);
+                return false;
             }
         }
+        return true; // Demo mode or local bypass
     };
 
     const addScanToHistory = async (scanResult) => {

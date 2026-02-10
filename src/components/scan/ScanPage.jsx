@@ -88,7 +88,11 @@ const ScanPage = () => {
             }
 
             setIsAnalyzing(true);
-            await deductCredit();
+            const success = await deductCredit();
+            if (!success) {
+                setIsAnalyzing(false);
+                return;
+            }
 
             let result;
             const useRealApi = isConfigured();

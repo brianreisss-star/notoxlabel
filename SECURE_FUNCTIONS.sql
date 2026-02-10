@@ -36,8 +36,7 @@ BEGIN
 
     -- Perform Update
     UPDATE profiles 
-    SET credits = credits - amount,
-        updated_at = NOW()
+    SET credits = credits - amount
     WHERE id = user_id;
 
     RETURN jsonb_build_object('success', true, 'new_balance', current_credits - amount);
@@ -75,8 +74,7 @@ BEGIN
 
     UPDATE profiles 
     SET xp = new_xp,
-        level = new_level,
-        updated_at = NOW()
+        level = new_level
     WHERE id = user_id;
 
     RETURN jsonb_build_object(

@@ -107,9 +107,14 @@ Retorne APENAS um JSON válido no seguinte formato:
 
         const data = await response.json();
 
+        if (data.error) {
+            console.error('[OpenAIAPI] Provider Error Data:', data.error);
+            throw new Error(`IA (OpenAI): ${data.error.message || 'Erro desconhecido'}`);
+        }
+
         if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
             console.error('[OpenAIAPI] Unexpected data structure:', data);
-            throw new Error('O servidor de IA retornou uma resposta vazia. Verifique sua conexão ou tente outra foto.');
+            throw new Error('O servidor de IA retornou uma resposta sem conteúdo. Tente novamente.');
         }
 
         const contentStr = data.choices[0].message.content;

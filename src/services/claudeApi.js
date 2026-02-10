@@ -99,11 +99,19 @@ Retorne APENAS um JSON válido no seguinte formato:
         }
 
         const data = await response.json();
+
+        // Check for provider-level errors returned in the JSON body
+        if (data.error) {
+            console.error('[ClaudeAPI] Provider Error Data:', data.error);
+            const providerMsg = data.error.message || JSON.stringify(data.error);
+            throw new Error(`IA (${data.error.type || 'Erro'}): ${providerMsg}`);
+        }
+
         const content = (data && data.content && data.content[0]) ? data.content[0].text : '';
 
         if (!content) {
-            console.error('[ClaudeAPI] Unexpected data structure:', data);
-            throw new Error('A IA não retornou uma resposta válida. Tente novamente em instantes.');
+            console.error('[ClaudeAPI] Empty or unexpected content:', data);
+            throw new Error('A IA respondeu, mas não enviou texto. Verifique se a foto está nítida ou se o produto é reconhecível.');
         }
 
         console.log('[ClaudeAPI] Raw Response received.');
