@@ -74,7 +74,7 @@ const PlansPage = () => {
             }
         } catch (error) {
             console.error("Payment Error:", error);
-            alert("Erro ao iniciar pagamento. Tente novamente.");
+            alert(`Erro ao iniciar pagamento: ${error.message}`);
         } finally {
             setIsPaying(null);
         }

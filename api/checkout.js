@@ -12,10 +12,17 @@ export default async function handler(req, res) {
     }
 
     try {
+        if (!process.env.STRIPE_SECRET_KEY) {
+            console.error('[Stripe Checkout] Critical Error: STRIPE_SECRET_KEY is not defined');
+            throw new Error('Configuração do servidor incompleta (Stripe Key). Verifique os logs no Vercel.');
+        }
+
         const { planId, userId, userEmail, returnUrl } = req.body;
 
-        if (!process.env.STRIPE_SECRET_KEY) {
-            throw new Error('STRIPE_SECRET_KEY missing in Vercel Env Vars');
+        console.log(`[Stripe Checkout] Initiating session for ${userEmail} (User: ${userId}, Plan: ${planId})`);
+
+        if (!userId || !userEmail) {
+            throw new Error('Identificação do usuário ausente. Tente fazer logout e login novamente.');
         }
 
         // Define Products/Prices
@@ -61,7 +68,7 @@ export default async function handler(req, res) {
         }
 
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card', 'boleto'],
+            payment_method_types: ['card'], // Removed boleto temporarily to avoid tax ID (CPF) requirements if not configured
             line_items: [lineItem],
             mode: mode,
             success_url: `${returnUrl}?session_id={CHECKOUT_SESSION_ID}`,
