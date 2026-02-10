@@ -124,14 +124,19 @@ const ScanPage = () => {
             }
 
             await addScanToHistory(result);
-            navigate('/results', { state: { result } });
-            navigate('/results', { state: { result } });
+
+            if (result && result.product_name) {
+                navigate('/results', { state: { result } });
+            } else {
+                throw new Error("A análise falhou em gerar dados estruturados. Tente novamente.");
+            }
         } catch (error) {
-            console.error(error);
+            console.error('Scan Error:', error);
             const errorMsg = error.message === 'API_KEY_MISSING'
                 ? 'Configure sua chave de API nas configurações (ícone de engrenagem).'
-                : `Erro na API: ${error.message}`;
+                : `Erro no Scanner: ${error.message}`;
             alert(errorMsg);
+        } finally {
             setIsAnalyzing(false);
         }
     };

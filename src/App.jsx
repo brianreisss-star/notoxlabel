@@ -25,17 +25,11 @@ import HistoryPage from './components/history/HistoryPage';
 
 const ProtectedRoute = ({ children }) => {
     const { user, profile, loading } = useUser();
-    const navigate = useNavigate();
 
     if (loading) return null;
 
     if (!user) {
         return <Navigate to="/auth" replace />;
-    }
-
-    // Redirect to onboarding if not completed (unless already there)
-    if (profile && profile.onboarding_completed === false && window.location.pathname !== '/onboarding') {
-        return <Navigate to="/onboarding" replace />;
     }
 
     return children;
