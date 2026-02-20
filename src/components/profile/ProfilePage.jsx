@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { Camera, Edit2, Share2, Award, Settings, LogOut, Check, ChevronRight, User, Shield, Info, Flame, Trophy, X, Star, Lock, Eye, Instagram, ShieldCheck, ArrowLeft, Heart, Sparkles, Zap, CheckCircle2 } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import BottomNav from '../layout/BottomNav';
@@ -144,7 +145,7 @@ const ProfilePage = () => {
     const handleSaveApiKey = () => {
         setApiKey(tempApiKey);
         setShowApiConfig(false);
-        alert('Configuração de IA salva com sucesso!');
+        toast.success('Configuração de IA salva com sucesso!');
     };
 
     return (

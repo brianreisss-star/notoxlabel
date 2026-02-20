@@ -76,10 +76,14 @@ Retorne APENAS um JSON válido no seguinte formato:
     try {
         console.log(`[ClaudeAPI] Initiating analysis via Backend Proxy...`);
 
-        // PRODUCTION: Call Vercel Serverless Function
+        // PRODUCTION: Call Vercel Serverless Function with JWT auth
+        const authToken = localStorage.getItem('notoxlabel_token') || '';
         const response = await fetch('/api/analyze', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
             body: JSON.stringify({
                 provider: 'claude',
                 mode: 'scan',

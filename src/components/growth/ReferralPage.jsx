@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useUser } from '../../context/UserContext';
 import { Gift, Copy, Share2, Check, ArrowLeft, Users, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -70,7 +71,7 @@ const ReferralPage = () => {
             } else {
                 // Fallback for desktop or unsupported browsers
                 handleCopy();
-                alert('Link copiado! (Seu navegador não suporta compartilhamento nativo)');
+                toast('Link copiado! Seu navegador não suporta compartilhamento nativo.');
             }
         } catch (err) {
             console.error('Error sharing:', err);

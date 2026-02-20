@@ -1,16 +1,89 @@
 export const config = {
-    runtime: 'edge', // Use Edge Runtime for speed
+    runtime: 'edge',
 };
 
+// Simple in-memory rate limiter (per deployment instance)
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const RATE_LIMIT_MAX = 10; // max 10 requests per minute per user
+
+function checkRateLimit(userId) {
+    const now = Date.now();
+    const entry = rateLimitMap.get(userId);
+    if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW) {
+        rateLimitMap.set(userId, { windowStart: now, count: 1 });
+        return true;
+    }
+    if (entry.count >= RATE_LIMIT_MAX) return false;
+    entry.count++;
+    return true;
+}
+
+// Verify Supabase JWT token
+async function verifyAuth(req) {
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return null;
+    }
+
+    const token = authHeader.split(' ')[1];
+    if (!token || token === 'demo-token') return null;
+
+    try {
+        const supabaseUrl = process.env.VITE_SUPABASE_URL;
+        const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+            headers: {
+                'apikey': process.env.VITE_SUPABASE_ANON_KEY || '',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) return null;
+        const user = await response.json();
+        return user?.id || null;
+    } catch {
+        return null;
+    }
+}
+
 export default async function handler(req) {
+    // CORS preflight
+    if (req.method === 'OPTIONS') {
+        return new Response(null, {
+            status: 204,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            }
+        });
+    }
+
     if (req.method !== 'POST') {
         return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
     }
 
     try {
+        // 1. Authenticate user
+        const userId = await verifyAuth(req);
+        if (!userId) {
+            return new Response(
+                JSON.stringify({ error: 'Unauthorized. Please log in again.' }),
+                { status: 401 }
+            );
+        }
+
+        // 2. Rate limit
+        if (!checkRateLimit(userId)) {
+            return new Response(
+                JSON.stringify({ error: 'Too many requests. Please wait a moment.' }),
+                { status: 429 }
+            );
+        }
+
         const { provider, mode, data } = await req.json();
 
-        // 1. Validate Provider & Keys
+        // 3. Validate Provider & Keys
         const apiKey = provider === 'openai'
             ? process.env.OPENAI_API_KEY
             : process.env.CLAUDE_API_KEY;
@@ -19,7 +92,7 @@ export default async function handler(req) {
             return new Response(JSON.stringify({ error: `Server API Key missing for ${provider}` }), { status: 500 });
         }
 
-        // 2. Handle Logic based on Mode
+        // 4. Handle Logic based on Mode
         if (mode === 'scan') {
             return await handleScan(provider, apiKey, data);
         } else if (mode === 'blog') {
@@ -30,7 +103,7 @@ export default async function handler(req) {
 
     } catch (error) {
         console.error('API Handler Error:', error);
-        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+        return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
     }
 }
 
@@ -47,7 +120,7 @@ async function handleScan(provider, apiKey, { images }) {
     2. Para cada ingrediente, avalie o risco à saúde (1=crítico, 10=excelente)
     3. Identifique ingredientes problemáticos e explique por quê
     4. Considere o contexto brasileiro de regulamentação (ANVISA)
-    
+
     Retorne APENAS um JSON válido no seguinte formato:
     {
       "product_name": "Nome do produto",
@@ -109,7 +182,7 @@ async function handleScan(provider, apiKey, { images }) {
                 'anthropic-version': '2023-06-01'
             },
             body: JSON.stringify({
-                model: 'claude-3-5-sonnet-20240620', // Better OCR than Haiku
+                model: 'claude-3-5-sonnet-20240620',
                 max_tokens: 4096,
                 messages: [{ role: 'user', content: [...imageBlocks, { type: 'text', text: "Analise a lista de ingredientes desta imagem e retorne apenas o JSON." }] }],
                 system: systemPrompt

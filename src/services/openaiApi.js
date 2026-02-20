@@ -90,9 +90,13 @@ Retorne APENAS um JSON válido no seguinte formato:
 }`;
 
     try {
+        const authToken = localStorage.getItem('notoxlabel_token') || '';
         const response = await fetch('/api/analyze', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
             body: JSON.stringify({
                 provider: 'openai',
                 mode: 'scan',

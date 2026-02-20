@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { supabase } from '../../services/supabase';
 import { useUser } from '../../context/UserContext';
 import { motion } from 'framer-motion';
@@ -11,7 +12,7 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
 
     // Security Check
-    const isAdmin = user?.email === 'admin@notoxlabel.com.br' || profile?.subscription_plan === 'admin';
+    const isAdmin = profile?.role === 'admin' || profile?.subscription_plan === 'admin';
 
     if (!isAdmin) {
         return (
@@ -22,7 +23,7 @@ const AdminDashboard = () => {
                 <div className="flex gap-4">
                     <button onClick={() => navigate('/')} className="px-8 py-4 bg-gray-50 text-gray-900 rounded-2xl font-black rounded-xl">Voltar</button>
                     {/* Backdoor for Demo - Delete in Production */}
-                    <button onClick={() => alert("Login como admin@notoxlabel.com.br para acessar.")} className="px-8 py-4 bg-gray-900 text-white rounded-2xl font-black">Sou Admin</button>
+                    <button onClick={() => toast("Faça login com uma conta de administrador para acessar.")} className="px-8 py-4 bg-gray-900 text-white rounded-2xl font-black">Sou Admin</button>
                 </div>
             </div>
         );
@@ -127,7 +128,7 @@ const AdminDashboard = () => {
         const newCode = `INF-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
         const newCoupon = { code: newCode, type: "50 Créditos", status: "Ativo", uses: 0 };
         setAdminCoupons([newCoupon, ...adminCoupons]);
-        alert(`Cupom ${newCode} gerado com sucesso!`);
+        toast.success(`Cupom ${newCode} gerado com sucesso!`);
     };
 
     const handleDeleteCoupon = (code) => {
@@ -488,7 +489,7 @@ const AdminDashboard = () => {
                         onClick={async () => {
                             const topic = document.getElementById('blog-topic').value;
                             const audience = document.getElementById('blog-audience').value;
-                            if (!topic) return alert('Digite um tópico!');
+                            if (!topic) return toast.error('Digite um tópico!');
 
                             const btn = document.getElementById('gen-btn');
                             btn.innerHTML = 'Gerando... (30-60s)';
@@ -498,10 +499,10 @@ const AdminDashboard = () => {
                                 const { generateBlogPost } = await import('../../services/aiService');
                                 const article = await generateBlogPost(topic, audience);
                                 console.log(article);
-                                alert('Artigo Gerado com Sucesso! (Log no Console)');
+                                toast.success('Artigo gerado com sucesso! (Log no Console)');
                             } catch (e) {
                                 console.error(e);
-                                alert('Erro: ' + (e.message || 'Verifique sua chave de API nas configurações do Scanner.'));
+                                toast.error('Erro: ' + (e.message || 'Verifique sua chave de API nas configurações do Scanner.'));
                             } finally {
                                 btn.innerHTML = 'Gerar Artigo com IA';
                                 btn.disabled = false;

@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /landing
+Allow: /legal
+Allow: /security
+Allow: /blog
+
+Disallow: /admin
+Disallow: /api/
+Disallow: /auth/callback
+
+Sitemap: https://www.notoxlabel.com.br/sitemap.xml

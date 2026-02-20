@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { useUser } from '../../context/UserContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, Heart, Share2, Plus, X, ShieldCheck, Instagram, Award, CheckCircle2, MessageCircle } from 'lucide-react';
@@ -106,7 +107,7 @@ const CommunityPage = () => {
             await createPost(user.id, newPostContent);
             setNewPostContent("");
             setIsPostModalOpen(false);
-            alert("Post enviado! Atualize a página para ver (ou implemente realtime depois).");
+            toast.success("Post enviado! Atualize a página para ver.");
             // Ideally refetch posts here
             const data = await getPosts();
             setPosts(data);
@@ -127,7 +128,7 @@ const CommunityPage = () => {
         }));
         setNewComment("");
         setCommentModalPostId(null);
-        alert("Comentário enviado!");
+        toast.success("Comentário enviado!");
     };
 
     return (

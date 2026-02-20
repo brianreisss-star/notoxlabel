@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Check, Zap, Crown, ShieldCheck, ArrowLeft, CreditCard, Users, HeartPulse, Sparkles, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
@@ -74,7 +75,7 @@ const PlansPage = () => {
             }
         } catch (error) {
             console.error("Payment Error:", error);
-            alert(`Erro ao iniciar pagamento: ${error.message}`);
+            toast.error(`Erro ao iniciar pagamento: ${error.message}`);
         } finally {
             setIsPaying(null);
         }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, ArrowLeft, ScanLine, Check } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
@@ -58,7 +59,7 @@ const Onboarding = () => {
             navigate('/');
         } catch (error) {
             console.error(error);
-            alert("Erro ao salvar perfil. Tente novamente.");
+            toast.error("Erro ao salvar perfil. Tente novamente.");
         }
     };
 

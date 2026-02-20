@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, createContext } from 'react';
+import toast from 'react-hot-toast';
 import * as supabase from '../services/supabase';
 
 const UserContext = createContext();
@@ -30,7 +31,7 @@ export const UserProvider = ({ children }) => {
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const isDemo = user?.id === 'demo-admin';
+    const isDemo = false; // Demo mode removed for security
 
     // Emergency Cleanup for QuotaExceededError
     useEffect(() => {
@@ -95,22 +96,28 @@ export const UserProvider = ({ children }) => {
                             }
                         } else {
                             // Create initial profile if it doesn't exist
+                            console.log("[UserContext] Profile not found for UID:", userId, ". Creating initial profile...");
                             const initialProfile = {
                                 name: user?.user_metadata?.name || '',
                                 credits: 3,
                                 xp: 0,
                                 level: 1,
                                 streak: 0,
-                                // Generate a robust referral code
                                 referral_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
                                 badges: [],
                                 onboarding_completed: false
                             };
 
-                            // Only create if we have a valid ID
                             if (userId) {
-                                await supabase.createProfile(userId, initialProfile);
-                                setProfile({ ...initialProfile, id: userId });
+                                try {
+                                    await supabase.createProfile(userId, initialProfile);
+                                    setProfile({ ...initialProfile, id: userId });
+                                    console.log("[UserContext] Initial profile successfully persisted to DB.");
+                                } catch (createError) {
+                                    console.error("[UserContext] CRITICAL: Failed to create DB profile:", createError);
+                                    // Don't set profile state if DB creation failed, so we can retry or show error
+                                    setError("Não foi possível criar seu perfil no banco de dados. Verifique se o Setup SQL foi executado.");
+                                }
                             }
                         }
 
@@ -194,6 +201,27 @@ export const UserProvider = ({ children }) => {
         }
     }, [history, isDemo]);
 
+    const logout = () => {
+        localStorage.removeItem('notoxlabel_user');
+        localStorage.removeItem('notoxlabel_token');
+        localStorage.removeItem('notoxlabel_profile'); // Clear backup as well
+        setUser(null);
+        setProfile({
+            credits: 3,
+            xp: 0,
+            level: 1,
+            streak: 0,
+            badges: [],
+            referral_code: '',
+            onboarding_completed: false,
+            evolution: [],
+            clean_habit_score: 0,
+            subscription_plan: 'free',
+            coupons: []
+        });
+        setHistory([]);
+    };
+
     // 3. Actions
     const updateUser = async (data) => {
         // Map photoURL to photo_url for Supabase
@@ -250,7 +278,7 @@ export const UserProvider = ({ children }) => {
             try {
                 const result = await supabase.rpcAddXp(amount);
                 if (result.success && result.level_up) {
-                    alert(`🎉 Parabéns! Você subiu para o Nível ${result.new_level}!`);
+                    toast.success(`Parabens! Voce subiu para o Nivel ${result.new_level}!`);
                 } else if (!result.success) {
                     console.error("XP RPC error:", result.error);
                 }
@@ -285,7 +313,7 @@ export const UserProvider = ({ children }) => {
                 console.error("Secure Credit Error:", err);
                 // If failed, rollback UI
                 setProfile(prev => ({ ...prev, credits: prev.credits + 1 }));
-                alert(`Erro ao descontar créditos: ${err.message}`);
+                toast.error(`Erro ao descontar creditos: ${err.message}`);
                 return false;
             }
         }
@@ -324,13 +352,13 @@ export const UserProvider = ({ children }) => {
         if (history.length === 0 && !badges.includes('first_scan')) {
             badges.push('first_scan');
             bonusXp += 50;
-            alert("🏆 Conquista Desbloqueada: Primeira Análise!");
+            toast.success("Conquista Desbloqueada: Primeira Analise!");
         }
 
         if (history.length === 9 && !badges.includes('10_scans')) {
             badges.push('10_scans');
             bonusXp += 100;
-            alert("🏆 Conquista Desbloqueada: 10 Produtos Analisados!");
+            toast.success("Conquista Desbloqueada: 10 Produtos Analisados!");
         }
 
         if (bonusXp > 0) {
@@ -342,10 +370,9 @@ export const UserProvider = ({ children }) => {
         }
     };
 
-    const isAdminUser = user?.email === 'admin@notoxlabel.com.br';
+    const isAdminUser = profile.role === 'admin';
     const isPro = profile.subscription_plan === 'pro' || profile.subscription_plan === 'admin' || profile.is_professional || isAdminUser;
 
-    // Admin gets unlimited (999) credits for testing
     const currentCredits = isAdminUser ? 999 : profile.credits;
 
     const visibleHistory = isPro ? history : history.slice(0, 5);

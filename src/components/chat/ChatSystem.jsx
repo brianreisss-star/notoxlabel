@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, User, ChevronLeft, MessageCircle } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
@@ -121,7 +122,7 @@ const ChatSystem = ({ isOpen, onClose, initialTargetUser }) => {
             }
         } catch (err) {
             console.error("Send Error", err);
-            alert("Erro ao enviar mensagem.");
+            toast.error("Erro ao enviar mensagem.");
         }
     };
 

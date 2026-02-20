@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Mail, Lock, ArrowRight, AlertCircle, User, Gift } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { signInWithGoogle, signInWithFacebook, signIn, signUp, isSupabaseConfigured, setSupabaseConfig } from '../../services/supabase';
+import { signInWithGoogle, signInWithFacebook, signIn, signUp, isSupabaseConfigured } from '../../services/supabase';
 import { useUser } from '../../context/UserContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -77,7 +78,7 @@ const AuthPage = () => {
                         navigate('/onboarding');
                     } else {
                         // Email confirmation flow
-                        alert("Quase lá! Enviamos um e-mail de confirmação. Por favor, clique no link no seu e-mail para ativar sua conta.");
+                        toast("Quase lá! Enviamos um e-mail de confirmação. Por favor, clique no link no seu e-mail para ativar sua conta.");
                         setIsLogin(true); // Switch to login so they can enter after confirming
                     }
                 }

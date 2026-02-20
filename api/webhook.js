@@ -1,16 +1,15 @@
 export const config = {
     api: {
-        bodyParser: false, // Critical for Stripe Signature Verification
+        bodyParser: false,
     },
 };
 
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
-const { buffer } = require('micro'); // Helper to read raw body
+const { buffer } = require('micro');
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Use Service Role Key to bypass RLS (Admin Access)
 const supabase = createClient(
     process.env.VITE_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -28,7 +27,6 @@ export default async function handler(req, res) {
     let event;
 
     try {
-        // Read raw body
         const buf = await buffer(req);
         event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
     } catch (err) {
@@ -37,7 +35,6 @@ export default async function handler(req, res) {
         return;
     }
 
-    // Handle the event
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         const { userId, planId, type } = session.metadata;
@@ -45,13 +42,23 @@ export default async function handler(req, res) {
         console.log(`[Stripe Webhook] Payment success for User ${userId} - Plan ${planId}`);
 
         try {
-            if (planId === 'credits_50') {
-                // Add 50 credits securely
-                // We can't use RPC here easily because RPC relies on auth.uid() context usually,
-                // unless we made the RPC 'security definer' AND accessible to anon/service_role.
-                // Since we have SERVICE_ROLE_KEY, we can direct update or call a specific admin RPC.
+            // Idempotency check: skip if already processed
+            const { data: existingTx } = await supabase
+                .from('transactions')
+                .select('id')
+                .eq('stripe_session_id', session.id)
+                .maybeSingle();
 
-                // Let's use direct update for simplicity as we have full admin access
+            if (existingTx) {
+                console.log(`[Stripe Webhook] Session ${session.id} already processed, skipping.`);
+                res.status(200).json({ received: true });
+                return;
+            }
+
+            // Determine amount
+            const amountCents = session.amount_total || 0;
+
+            if (planId === 'credits_50') {
                 const { data: profile } = await supabase.from('profiles').select('credits').eq('id', userId).single();
 
                 if (profile) {
@@ -62,14 +69,28 @@ export default async function handler(req, res) {
                 }
 
             } else if (planId === 'pro_monthly' || planId === 'pro_annual') {
-                // Activate Pro Subscription
                 await supabase.from('profiles').update({
                     subscription_plan: 'pro',
-                    is_professional: true, // Optional: give pro features
-                    credits: 999, // Unlimited logic or high cap
+                    is_professional: true,
+                    credits: 999,
                     updated_at: new Date().toISOString()
                 }).eq('id', userId);
             }
+
+            // Log transaction for audit
+            await supabase.from('transactions').insert({
+                user_id: userId,
+                stripe_session_id: session.id,
+                plan_id: planId,
+                type: type || (planId === 'credits_50' ? 'credits' : 'subscription'),
+                amount_cents: amountCents,
+                currency: session.currency || 'brl',
+                status: 'completed',
+                metadata: {
+                    stripe_customer: session.customer,
+                    stripe_payment_intent: session.payment_intent
+                }
+            });
 
             res.status(200).json({ received: true });
 

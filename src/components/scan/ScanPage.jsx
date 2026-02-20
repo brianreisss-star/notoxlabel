@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Camera, Upload, X, ArrowRight, Loader2, ScanLine, Settings, Info, Plus, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
@@ -56,7 +57,7 @@ const ScanPage = () => {
 
         setProvider(selectedProvider);
         setShowApiModal(false);
-        alert(`Configuração Salva! Usando: ${selectedProvider === 'claude' ? 'Claude 3.5' : 'GPT-4o'}`);
+        toast.success(`Configuração salva! Usando: ${selectedProvider === 'claude' ? 'Claude 3.5' : 'GPT-4o'}`);
     };
 
     const getMockResult = () => {
@@ -83,7 +84,7 @@ const ScanPage = () => {
     const analyzeImage = async () => {
         try {
             if (credits <= 0) {
-                alert("Créditos insuficientes.");
+                toast.error("Créditos insuficientes.");
                 return;
             }
 
@@ -135,7 +136,7 @@ const ScanPage = () => {
             const errorMsg = error.message === 'API_KEY_MISSING'
                 ? 'Configure sua chave de API nas configurações (ícone de engrenagem).'
                 : `Erro no Scanner: ${error.message}`;
-            alert(errorMsg);
+            toast.error(errorMsg);
         } finally {
             setIsAnalyzing(false);
         }

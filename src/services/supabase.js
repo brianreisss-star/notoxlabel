@@ -3,12 +3,12 @@
  * Backend service for authentication and data persistence
  */
 
-// Supabase configuration
-// In production, use environment variables
-const SUPABASE_URL = localStorage.getItem('notoxlabel_supabase_url') || localStorage.getItem('rotulimpo_supabase_url') || import.meta.env.VITE_SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = localStorage.getItem('notoxlabel_supabase_key') || localStorage.getItem('rotulimpo_supabase_key') || import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Supabase configuration - only from environment variables (never from localStorage)
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 import { createClient } from '@supabase/supabase-js';
+import { sanitizeMessage, sanitizePost } from '../utils/sanitize';
 
 // Export the official client for advanced usage (like in AdminDashboard)
 export const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
@@ -74,13 +74,6 @@ const authFetch = async (endpoint, body) => {
 // ==================== AUTH ====================
 
 export const signUp = async (email, password, name, additionalData = {}) => {
-    // Demo Mode Bypass
-    if (email === 'admin@notoxlabel.com.br') {
-        const demoUser = { id: 'demo-admin', email, user_metadata: { name: 'Admin NoToxLabel', ...additionalData } };
-        localStorage.setItem('notoxlabel_user', JSON.stringify(demoUser));
-        return { user: demoUser };
-    }
-
     const data = await authFetch('/signup', {
         email,
         password,
@@ -96,13 +89,6 @@ export const signUp = async (email, password, name, additionalData = {}) => {
 };
 
 export const signIn = async (email, password) => {
-    // Hardcoded Admin Bypass for Testing
-    if (email === 'admin@notoxlabel.com.br' && password === 'admin123') {
-        const demoUser = { id: 'demo-admin', email, user_metadata: { name: 'Admin NoToxLabel' } };
-        localStorage.setItem('notoxlabel_user', JSON.stringify(demoUser));
-        return { user: demoUser, access_token: 'demo-token' };
-    }
-
     const data = await authFetch('/token?grant_type=password', {
         email,
         password
@@ -188,15 +174,21 @@ export const checkReferralCodeUnique = async (code) => {
 };
 
 export const createProfile = async (userId, profileData) => {
-    return supabaseFetch('/profiles', {
-        method: 'POST',
-        body: JSON.stringify({
-            id: userId,
-            ...profileData,
-            created_at: new Date().toISOString()
-            // updated_at removed
-        })
-    });
+    if (!userId) throw new Error("userId is required to create a profile");
+
+    try {
+        return await supabaseFetch('/profiles', {
+            method: 'POST',
+            body: JSON.stringify({
+                id: userId,
+                ...profileData,
+                created_at: new Date().toISOString()
+            })
+        });
+    } catch (error) {
+        console.error('[Supabase] createProfile error:', error);
+        throw error;
+    }
 };
 
 // ==================== SCAN HISTORY ====================
@@ -283,9 +275,11 @@ export const getConversations = async (userId) => {
     }
 };
 
-export const getMessages = async (conversationId) => {
+export const getMessages = async (conversationId, limit = 50, offset = 0) => {
     try {
-        return await supabaseFetch(`/messages?conversation_id=eq.${conversationId}&order=created_at.asc`);
+        return await supabaseFetch(
+            `/messages?conversation_id=eq.${conversationId}&order=created_at.desc&limit=${limit}&offset=${offset}`
+        );
     } catch (error) {
         console.error('Error fetching messages:', error);
         return [];
@@ -293,12 +287,15 @@ export const getMessages = async (conversationId) => {
 };
 
 export const sendMessage = async (conversationId, senderId, content) => {
+    const cleanContent = sanitizeMessage(content);
+    if (!cleanContent) throw new Error('Message content is empty');
+
     return supabaseFetch('/messages', {
         method: 'POST',
         body: JSON.stringify({
             conversation_id: conversationId,
             sender_id: senderId,
-            content,
+            content: cleanContent,
             created_at: new Date().toISOString(),
             read: false
         })
@@ -367,11 +364,14 @@ export const getPosts = async () => {
 };
 
 export const createPost = async (userId, content) => {
+    const cleanContent = sanitizePost(content);
+    if (!cleanContent) throw new Error('Post content is empty');
+
     return supabaseFetch('/posts', {
         method: 'POST',
         body: JSON.stringify({
             user_id: userId,
-            content,
+            content: cleanContent,
             created_at: new Date().toISOString()
         })
     });
@@ -422,11 +422,7 @@ export const createBlogPost = async (postData) => {
 
 // ==================== CONFIGURATION ====================
 
-export const setSupabaseConfig = (url, key) => {
-    localStorage.setItem('notoxlabel_supabase_url', url);
-    localStorage.setItem('notoxlabel_supabase_key', key);
-    window.location.reload();
-};
+// Configuration is now exclusively from environment variables for security
 
 // ==================== DATABASE SCHEMA (for reference) ====================
 /*
